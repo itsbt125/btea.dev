@@ -8,6 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none';">
 <meta name="author" content="btea">
 <meta name="robots" content="noarchive">
+<link rel="alternate" type="application/atom+xml" title="btea.dev blog" href="/feed.xml">
 <link rel="canonical" href="https://btea.dev/blog/codetyper-still-broken.html">
 <meta property="og:title" content="Still Broken: Re-assessing codetyper.in After Patches">
 <meta property="og:description" content="A live re-assessment of codetyper.in after vendor patches. Most round-1 findings still open, plus new mass-assignment and anti-cheat bypasses.">
@@ -23,10 +24,10 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header>
 <h1>Still Broken: Re-assessing codetyper.in After Patches</h1>
-<nav><a href="./index.html">blog</a></nav>
+<nav><a href="./index.html" aria-current="page">blog</a> <a href="/uses/">uses</a></nav>
 </header>
 <main id="main">
-<p class="post-meta"><time datetime="2026-06-29">June 29, 2026</time></p>
+<p class="post-meta"><time datetime="2026-06-29">June 29, 2026</time> · codetyper series, part 2 · ~5 min read</p>
 
 <h2 id="context"><a href="#context">#</a> Context</h2>
 <p>In April 2026 I disclosed a set of critical vulnerabilities in <a href="./from-regular-user-to-super-admin.html">codetyper.in</a>. The vendor patched the admin IDOR. I came back in late May and late June to see what else stuck. The short version: the admin IDOR stayed fixed. Everything else didn't.</p>
@@ -146,6 +147,8 @@ select=user_id,profiles(username),snippets(content),recording_json&limit=10" \
 <hr>
 
 <p><em>All testing performed with authorization. Only throwaway accounts were modified; changes were reverted promptly after disclosure. No other user data was touched. Content disclosure: The development of this specific page was aided with AI tools.</em></p>
+
+<p class="related">Related: <a href="./from-regular-user-to-super-admin.html">From Regular User to Super Admin: Hacking codetyper.in</a> — part 1, where all this started.</p>
 
 <p class="back-link">← <a href="../index.html">btea.dev</a></p>
 </main>

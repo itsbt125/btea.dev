@@ -8,6 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none';">
 <meta name="author" content="btea">
 <link rel="canonical" href="https://btea.dev/">
+<link rel="alternate" type="application/atom+xml" title="btea.dev blog" href="/feed.xml">
 <meta name="robots" content="noarchive">
 <meta property="og:title" content="btea.dev">
 <meta property="og:description" content="btea.dev — linux, networking, and security research.">
@@ -26,34 +27,42 @@
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header>
-<h1>btea.dev</h1>
-<nav><a href="./blog/index.html">blog</a></nav>
+<h1>~/btea</h1>
+<nav><a href="/" aria-current="page">home</a> <a href="./uses/">uses</a> <a href="./blog/index.html">blog</a></nav>
 </header>
 <main id="main">
 <a href="images/ibm-pc-5150.jpg" target="_blank" rel="noopener noreferrer"><img class="main" src="images/ibm-pc-5150.jpg" width="480" height="360" alt="IBM 5150 PC, via Wikimedia Commons"></a>
 <h2>Introduction</h2>
 <p>Hey, I'm btea. I've been around computers for a long time and these days I'm mostly into Linux, networking, and security research, with a focus on malware analysis and web exploitation. I'm self-taught and a big open source believer, and I run a homelab where I basically play sysadmin.</p>
 <h2>What I'm doing right now</h2>
-<p>Right now I'm mostly doing security research. I work through rooms on TryHackMe and HackTheBox, and I pentest sites for fun on the side (with consent, of course). The main focus is web exploitation and malware analysis. I'm also building out a homelab and leveling up my C++ and frontend skills after spending most of my time in Python.</p>
-<h2>Contacts and socials</h2>
-<p>You can email me at <a href="mailto:contact@btea.dev">contact@btea.dev</a> (PGP key <a href="pgp.asc">here</a>). You can find my code on GitHub <a href="https://github.com/itsbt125" target="_blank" rel="noopener noreferrer">here</a>.</p>
+<p>Right now I'm mostly doing security research. I work through rooms on TryHackMe and HackTheBox, and I pentest sites for fun on the side (with consent, of course). The main focus is web exploitation and malware analysis. I'm also building out a homelab and learning C after spending most of my time in Python.</p>
+<h2>Latest posts</h2>
+<ul class="post-links">
+<li><a href="./blog/searching-privately.html">enhancing search privacy</a><time datetime="2026-08-24">August 24, 2026</time></li>
+<li><a href="./blog/codetyper-still-broken.html">Still Broken: Re-assessing codetyper.in After Patches</a><time datetime="2026-06-29">June 29, 2026</time></li>
+<li><a href="./blog/from-regular-user-to-super-admin.html">From Regular User to Super Admin: Hacking codetyper.in</a><time datetime="2026-04-21">April 21, 2026</time></li>
+</ul>
+<p class="more-link"><a href="./blog/index.html">all posts →</a></p>
+
+<h2 class="contacts-heading">Contacts and socials</h2>
+<p>You can email me at <a href="mailto:contact@btea.dev">contact@btea.dev</a> (PGP key <a href="pgp.asc">here</a>). Find me on GitHub <a href="https://github.com/itsbt125" target="_blank" rel="noopener noreferrer">here</a>.</p>
 <div class="badges">
-    <img src="images/linux-badge.png" alt="linux badge" loading="lazy" decoding="async">
-    <a href="https://cyber.dabamos.de/88x31/debian-powered.gif" target="_blank" rel="noopener noreferrer"><img src="images/debian-powered.gif" alt="debian powered badge" loading="lazy" decoding="async"></a>
-    <a href="https://capstasher.neocities.org/88x31Buttons/archlinux.gif" target="_blank" rel="noopener noreferrer"><img src="images/archlinux.gif" alt="arch linux badge" loading="lazy" decoding="async"></a>
-    <a href="https://capstasher.neocities.org/88x31Buttons/fedora.gif" target="_blank" rel="noopener noreferrer"><img src="images/fedora.gif" alt="fedora powered badge" loading="lazy" decoding="async"></a>
-    <a href="https://capstasher.neocities.org/88x31Buttons/fftake.gif" target="_blank" rel="noopener noreferrer"><img src="images/fftake.gif" alt="firefox take back the web badge" loading="lazy" decoding="async"></a>
-    <a href="https://cyber.dabamos.de/88x31/gnunano.gif" target="_blank" rel="noopener noreferrer"><img src="images/gnunano.gif" alt="gnu nano badge" loading="lazy" decoding="async"></a>
-    <a href="https://seirdy.one/p/b/ublock-origin.3786077848.webp" target="_blank" rel="noopener noreferrer"><img src="images/ublock-origin.webp" alt="ublock origin badge" loading="lazy" decoding="async"></a>
-    <a href="https://capstasher.neocities.org/88x31Buttons/coreboot.gif" target="_blank" rel="noopener noreferrer"><img src="images/coreboot.gif" alt="coreboot badge" loading="lazy" decoding="async"></a>
-    <img src="images/code-by-hand-badge.gif" alt="code by hand badge" loading="lazy" decoding="async">
-    <img src="images/email-badge.gif" alt="email badge" loading="lazy" decoding="async">
-    <a href="https://capstasher.neocities.org/88x31Buttons/internetarchive.gif" target="_blank" rel="noopener noreferrer"><img src="images/internetarchive.gif" alt="internet archive badge" loading="lazy" decoding="async"></a>
+    <img src="images/linux-badge.png" alt="linux badge" width="88" height="31" loading="lazy" decoding="async">
+    <a href="https://cyber.dabamos.de/88x31/debian-powered.gif" target="_blank" rel="noopener noreferrer"><img src="images/debian-powered.gif" alt="debian powered badge" width="88" height="31" loading="lazy" decoding="async"></a>
+    <a href="https://capstasher.neocities.org/88x31Buttons/archlinux.gif" target="_blank" rel="noopener noreferrer"><img src="images/archlinux.gif" alt="arch linux badge" width="88" height="31" loading="lazy" decoding="async"></a>
+    <a href="https://capstasher.neocities.org/88x31Buttons/fedora.gif" target="_blank" rel="noopener noreferrer"><img src="images/fedora.gif" alt="fedora powered badge" width="88" height="31" loading="lazy" decoding="async"></a>
+    <a href="https://capstasher.neocities.org/88x31Buttons/fftake.gif" target="_blank" rel="noopener noreferrer"><img src="images/fftake.gif" alt="firefox take back the web badge" width="88" height="31" loading="lazy" decoding="async"></a>
+    <a href="https://cyber.dabamos.de/88x31/gnunano.gif" target="_blank" rel="noopener noreferrer"><img src="images/gnunano.gif" alt="gnu nano badge" width="88" height="31" loading="lazy" decoding="async"></a>
+    <a href="https://seirdy.one/p/b/ublock-origin.3786077848.webp" target="_blank" rel="noopener noreferrer"><img src="images/ublock-origin.webp" alt="ublock origin badge" width="88" height="31" loading="lazy" decoding="async"></a>
+    <a href="https://capstasher.neocities.org/88x31Buttons/coreboot.gif" target="_blank" rel="noopener noreferrer"><img src="images/coreboot.gif" alt="coreboot badge" width="88" height="31" loading="lazy" decoding="async"></a>
+    <img src="images/code-by-hand-badge.gif" alt="code by hand badge" width="88" height="31" loading="lazy" decoding="async">
+    <img src="images/email-badge.gif" alt="email badge" width="88" height="31" loading="lazy" decoding="async">
+    <a href="https://capstasher.neocities.org/88x31Buttons/internetarchive.gif" target="_blank" rel="noopener noreferrer"><img src="images/internetarchive.gif" alt="internet archive badge" width="88" height="31" loading="lazy" decoding="async"></a>
 </div>
 </main>
 <footer>
 <p id="server-stats" aria-label="server statistics"></p>
-<p>© 2026 btea.dev · Last updated <span id="last-updated">June 27, 2026</span> · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">Source Code</a></p>
+<p>© 2026 btea.dev · Last updated <span id="last-updated">August 23, 2026</span> · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">Source Code</a></p>
 </footer>
 <script>
   function formatUptime(seconds) {

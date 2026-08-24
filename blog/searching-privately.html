@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="How I search privately during security research: self-hosted SearXNG behind a WireGuard kill switch, plus the browser habits that actually matter.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none';">
+<meta name="author" content="btea">
+<meta name="robots" content="noarchive">
+<link rel="canonical" href="https://btea.dev/blog/searching-privately.html">
+<link rel="alternate" type="application/atom+xml" title="btea.dev blog" href="/feed.xml">
+<link rel="preload" as="font" type="font/woff2" href="../fonts/Redaction_50-Regular.woff2" crossorigin>
+<link rel="stylesheet" href="../style.css">
+<title>enhancing search privacy / btea.dev</title>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header>
+<h1>enhancing search privacy</h1>
+<nav><a href="./index.html" aria-current="page">blog</a> <a href="/uses/">uses</a></nav>
+</header>
+<main id="main">
+<p class="post-meta"><time datetime="2026-08-24">August 24, 2026</time> · ~4 min read</p>
+
+<h2 id="the-problem"><a href="#the-problem">#</a> what we're trying to solve</h2>
+<p>Google. We're trying to beat Google at their own game. Google, and every other major search provider, won't hesitate to send your search data to advertisers and law enforcement. Imagine you need to search for a very specific string privately: your search provider now knows exactly where that string came from, along with hundreds of fingerprints on you. I've solved these issues for myself, and in this post I'll detail my private search setup for protection against adversaries and advertisers. To start, you'll need a dedicated Linux server like a <a href="https://www.raspberrypi.com/" target="_blank" rel="noopener noreferrer">Raspberry Pi</a>. I'm not going to go into depth on setting up a Linux distro like Debian on it, but you really only need Docker and a subscription to a private VPN. This article covers routing a private search aggregator (<a href="https://docs.searxng.org/" target="_blank" rel="noopener noreferrer">SearXNG</a>) through a VPN provider you trust, like <a href="https://mullvad.net/" target="_blank" rel="noopener noreferrer">Mullvad</a>.</p>
+
+<h2 id="the-stack"><a href="#the-stack">#</a> the stack</h2>
+<p>Everything you need runs on a dedicated Linux server, like a Raspberry Pi.</p>
+<ul>
+<li><strong><a href="https://docs.searxng.org/" target="_blank" rel="noopener noreferrer">SearXNG</a></strong>: a metasearch engine. You type one query, it forwards it to a dozen upstream engines in parallel and merges what comes back. No account, no saved history, no tracking cookies passed through.</li>
+<li><strong><a href="https://github.com/qdm12/gluetun" target="_blank" rel="noopener noreferrer">Gluetun</a></strong>: a Docker container that's basically a WireGuard client with a kill switch baked in. Other containers share its network namespace, so when the tunnel dies they have no internet at all. Nothing leaks out over the home connection "just this once."</li>
+<li><strong><a href="https://mullvad.net/" target="_blank" rel="noopener noreferrer">Mullvad</a></strong>: my VPN provider (it needs to support WireGuard). I use it for the verified no logs claims and privacy stance.</li>
+</ul>
+<p>PSA: Search engines stop profiling you, your ISP only sees encrypted traffic to Mullvad, and a target sees a shared exit IP instead of yours. But Mullvad still sees where you connect, so you're moving trust rather than removing it. Good enough against advertisers. This is simply not good enough against a state actor.</p>
+
+<h2 id="setup"><a href="#setup">#</a> setting it up</h2>
+<p>The main trick is <code>network_mode: "service:gluetun"</code>. SearXNG doesn't get its own network stack, so it can't reach the internet except through the tunnel:</p>
+<pre><code>services:
+  gluetun:
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=REDACTED
+      - SERVER_COUNTRIES=Netherlands
+    ports:
+      - "8080:8080"   # expose SearXNG's port *through* gluetun
+
+  searxng:
+    image: searxng/searxng
+    network_mode: "service:gluetun"
+    volumes:
+      - ./searxng:/etc/searxng</code></pre>
+<p>Then in <code>settings.yml</code>: turn off the engines you don't use (I keep DuckDuckGo, Brave, Startpage and Wikipedia), disable SafeSearch, and set <code>public: false</code> so your instance doesn't offer itself up as a public one. Mine only answers on my LAN. Running a public metasearch instance is a different hobby.</p>
+
+<h2 id="verification"><a href="#verification">#</a> proving it works</h2>
+<p>Test it before you trust it:</p>
+<pre><code>docker exec gluetun wget -qO- https://ifconfig.me
+# should output with a mullvad exit IP, not your home's public IP.
+
+docker exec gluetun sh -c 'nslookup example.com'
+#  DNS queries should also resolve through the tunnel</code></pre>
+<h2 id="habits"><a href="#habits">#</a> browser habits that matter</h2>
+<p>The private pipe doesn't help if the browser gives you away. Use a privacy hardened Firefox fork like <a href="https://librewolf.net/" target="_blank" rel="noopener noreferrer">LibreWolf</a> with multi account containers/profiles with no personal logins, and read sensitive results through <a href="https://archive.ph/" target="_blank" rel="noopener noreferrer">archive.today</a> instead of clicking straight to the live site. And keep in mind this is only one step: browser fingerprinting, cookies, account correlation and a hundred other things can deanonymize you on their own.</p>
+
+<h2 id="limits"><a href="#limits">#</a> limits</h2>
+<p>This is privacy, not anonymity. You're shifting trust from your ISP to your VPN provider, who still sees which IPs you talk to. None of it replaces authorization either: whether the target can see you doesn't change whether you're allowed to test them.</p>
+<p>What you get is routine recon that looks like noise, no ad profile of everything you've researched, and an accidental click that can't burn the session. A few dollars/euros a month and an afternoon of config.</p>
+
+<p class="back-link">← <a href="../index.html">btea.dev</a></p>
+</main>
+
+<footer><p>© 2026 btea.dev · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">Source Code</a></p></footer>
+<script src="post.js" defer></script>
+</body>
+</html>

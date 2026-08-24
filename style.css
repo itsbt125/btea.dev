@@ -71,10 +71,16 @@ main, header, footer {
 footer {
 	margin-top: 2rem;
 }
+.contacts-heading {
+	margin-top: 3.5rem;
+}
+
 header {
 	display: flex;
 	justify-content: space-between;
 	align-items: baseline;
+	padding-top: 3rem;
+	margin-bottom: 1rem;
 }
 nav {
 	font-size: 0.875rem;
@@ -84,6 +90,10 @@ nav a {
 }
 nav a:first-child {
 	margin-left: 0;
+}
+nav a[aria-current="page"] {
+	color: var(--ink);
+	font-weight: 700;
 }
 a {
 	text-decoration: none;
@@ -142,11 +152,22 @@ p {
 	flex-wrap: wrap;
 	align-items: flex-start;
 	gap: 8px;
-	margin-top: 16px;
+	margin-top: 2.25rem;
 }
 .badges img {
 	height: 31px;
 	width: auto;
+	opacity: 0.9;
+	transition: opacity 0.15s ease;
+}
+.badges a:hover img,
+.badges a:focus-visible img,
+.badges > img:hover {
+	opacity: 1;
+}
+.blog-intro {
+	color: var(--muted);
+	margin: 0 0 2rem;
 }
 #server-stats {
 	font-size: 12px;
@@ -163,7 +184,7 @@ p {
 	}
 }
 h1 {
-	font-size: 1.75rem;
+	font-size: 2.25rem;
 	font-weight: 700;
 	margin-bottom: 0.75rem;
 	text-wrap: balance;
@@ -200,6 +221,37 @@ h2[id] a:focus-visible, h3[id] a:focus-visible {
 	padding: 0;
 	margin: 0;
 }
+.post-links {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.post-links li {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 1rem;
+	padding: 0.45rem 0;
+	border-bottom: 1px solid var(--rule);
+}
+.post-links li:last-child {
+	border-bottom: none;
+}
+.post-links time {
+	font-family: var(--mono);
+	font-size: 0.72rem;
+	color: var(--muted);
+	white-space: nowrap;
+}
+.more-link {
+	font-size: 0.875rem;
+}
+@media (max-width: 600px) {
+	.post-links li {
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+}
 .blog-item {
 	margin-bottom: 2.5rem;
 	padding-bottom: 2.5rem;
@@ -232,6 +284,13 @@ h2[id] a:focus-visible, h3[id] a:focus-visible {
 .back-link {
 	margin-top: 3rem;
 	font-size: 0.875rem;
+}
+.related {
+	margin-top: 2rem;
+	padding: 0.9rem 1rem;
+	border: 1px solid var(--rule);
+	border-radius: 8px;
+	font-size: 0.95rem;
 }
 
 .post-meta {
@@ -310,6 +369,9 @@ th, td {
 th {
 	background: var(--code-bg);
 	font-weight: 700;
+}
+tbody tr:hover td {
+	background: var(--code-bg);
 }
 ul, ol {
 	line-height: 1.6;
