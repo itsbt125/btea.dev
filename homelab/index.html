@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="my homelab — spare hardware, self-hosted services, and zero cloud accounts.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'none';">
+<meta name="author" content="btea">
+<meta name="robots" content="noarchive">
+<link rel="canonical" href="https://btea.dev/homelab/">
+<link rel="alternate" type="application/atom+xml" title="btea.dev blog" href="/feed.xml">
+<link rel="preload" as="font" type="font/woff2" href="/fonts/Redaction_50-Regular.woff2" crossorigin>
+<link rel="stylesheet" href="/style.css">
+<title>homelab / btea.dev</title>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header>
+<h1>homelab</h1>
+<nav><a href="/">home</a> <a href="/uses/">uses</a> <a href="/homelab/" aria-current="page">lab</a> <a href="/blog/">blog</a></nav>
+</header>
+<main id="main">
+<p class="post-meta">to self host is to be free.</p>
+
+<h2>my computers in the lab</h2>
+<ul>
+<li><strong>Raspberry Pi 5</strong> - the main host. Runs the bulk of my self-hosted services around the clock.</li>
+<li><strong>Old gaming laptop</strong> - repurposed laptop with a mobile RTX GPU, used as Proxmox host.</li>
+<li><strong>Raspberry Pi 4</strong> - i plan to use this for some IoT hacking.</li>
+</ul>
+
+<h2>networking</h2>
+<p>everything is connected on the same 8 port gigabit ubiquiti switch. networking is mainly managed by someone else :) </p>
+
+<h2>what's running</h2>
+<p>On the order of fifteen to twenty self-hosted services behind a reverse proxy, grouped roughly into:</p>
+<ul>
+<li><strong>search</strong> - private metasearch, tunneled through a VPN (<a href="/blog/searching-privately.html">wrote about that setup here</a>)</li>
+<li><strong>knowledge</strong> - note-taking and wiki for school. i host kiwix and trilium notes/todo lists</li>
+<li><strong>monitoring &amp; metrics</strong> - metrics collection, log aggregation, dashboards, uptime checks</li>
+<li><strong>files</strong> - file hosting and syncing</li>
+<li><strong>chat</strong> - i self host matrix for private and secure chats.</li>
+<li><strong>tools</strong> - file conversion (snapotter, convertx), dashboards (grafana, uptime kuma), local AI endpoints (ai summary plugin for searxng)</li>
+</ul>
+
+<h2>q: why bother doing this given all of these things are cloud services anyway?</h2>
+<p>a: it's really fun to manage and be in full control of your own data. i don't like big corpos spying on me :/</p>
+</main>
+
+<footer><p>© 2026 btea.dev · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">Source Code</a></p></footer>
+</body>
+</html>

@@ -114,6 +114,7 @@ img.main {
 	display: block;
 	margin: 0 0 1.5rem 0;
 	border-radius: 30px;
+	border: 1px solid var(--rule);
 	max-width: 100%;
 	height: auto;
 	transition: opacity 0.15s ease;
@@ -203,6 +204,7 @@ h3 {
 }
 h2[id], h3[id] {
 	position: relative;
+	scroll-margin-top: 1.5rem;
 }
 h2[id] a, h3[id] a {
 	position: absolute;
@@ -233,6 +235,15 @@ h2[id] a:focus-visible, h3[id] a:focus-visible {
 	gap: 1rem;
 	padding: 0.45rem 0;
 	border-bottom: 1px solid var(--rule);
+}
+.post-links li a {
+	flex: 1;
+}
+.post-links li:hover {
+	background: var(--code-bg);
+}
+.post-links li:hover a {
+	color: var(--link-hover);
 }
 .post-links li:last-child {
 	border-bottom: none;
@@ -283,6 +294,8 @@ h2[id] a:focus-visible, h3[id] a:focus-visible {
 }
 .back-link {
 	margin-top: 3rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid var(--rule);
 	font-size: 0.875rem;
 }
 .related {
