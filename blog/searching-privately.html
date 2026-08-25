@@ -37,7 +37,7 @@
 
 <h2 id="setup"><a href="#setup">#</a> setting it up</h2>
 <p>The main trick is <code>network_mode: "service:gluetun"</code>. SearXNG doesn't get its own network stack, so it can't reach the internet except through the tunnel:</p>
-<pre><code>services:
+<pre data-lang="bash"><code>services:
   gluetun:
     image: qmcgaw/gluetun
     cap_add:
@@ -61,7 +61,7 @@
 
 <h2 id="verification"><a href="#verification">#</a> proving it works</h2>
 <p>Test it before you trust it:</p>
-<pre><code>docker exec gluetun wget -qO- https://ifconfig.me
+<pre data-lang="bash"><code>docker exec gluetun wget -qO- https://ifconfig.me
 # should output with a mullvad exit IP, not your home's public IP.
 
 docker exec gluetun sh -c 'nslookup example.com'

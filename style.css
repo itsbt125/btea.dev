@@ -50,8 +50,7 @@ html::-webkit-scrollbar {
 	}
 }
 @media (prefers-reduced-motion: reduce) {
-	a:has(img.main):hover img.main,
-	a:has(img.main):focus-visible img.main {
+	a {
 		transition: none;
 	}
 	html {
@@ -61,6 +60,7 @@ html::-webkit-scrollbar {
 body {
 	background-color: var(--bg);
 	color: var(--ink);
+	font-size: 17px;
 	margin: 0;
 	padding: 0 24px;
 }
@@ -98,10 +98,19 @@ nav a[aria-current="page"] {
 a {
 	text-decoration: none;
 	color: var(--link);
+	background-image: linear-gradient(currentColor, currentColor);
+	background-size: 0% 1px;
+	background-repeat: no-repeat;
+	background-position: 0 100%;
+	transition: background-size 0.15s ease;
 }
 a:hover {
-	text-decoration: underline;
+	text-decoration: none;
 	color: var(--link-hover);
+	background-size: 100% 1px;
+}
+.badges a {
+	background-image: none;
 }
 a:focus-visible {
 	outline: 2px solid var(--link);
@@ -109,22 +118,6 @@ a:focus-visible {
 }
 a:visited {
 	color: var(--link);
-}
-img.main {
-	display: block;
-	margin: 0 0 1.5rem 0;
-	border-radius: 30px;
-	border: 1px solid var(--rule);
-	max-width: 100%;
-	height: auto;
-	transition: opacity 0.15s ease;
-}
-a:has(img.main):hover img.main,
-a:has(img.main):focus-visible img.main {
-	opacity: 0.85;
-}
-a:has(img.main):focus-visible img.main {
-	outline: 2px solid var(--link);
 }
 .skip-link {
 	position: absolute;
@@ -304,6 +297,7 @@ h2[id] a:focus-visible, h3[id] a:focus-visible {
 	border: 1px solid var(--rule);
 	border-radius: 8px;
 	font-size: 0.95rem;
+	font-style: italic;
 }
 
 .post-meta {
@@ -335,6 +329,20 @@ pre .copy-btn {
 	cursor: pointer;
 	opacity: 0;
 	transition: opacity 0.15s ease;
+}
+pre[data-lang] {
+	padding-top: 2.4em;
+}
+pre[data-lang]::before {
+	content: attr(data-lang);
+	position: absolute;
+	top: 8px;
+	left: 14px;
+	font-family: var(--mono);
+	font-size: 10px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
 }
 pre:hover .copy-btn,
 pre .copy-btn:focus-visible {
