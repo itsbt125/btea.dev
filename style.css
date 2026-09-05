@@ -21,11 +21,14 @@
 }
 
 :root {
+	/* spacing scale */
+	--space-block: 1rem;
+	--space-section: 2.5rem;
 	--bg: #FFFDF7;
 	--ink: #1a1612;
 	--link: #8a5e2e;
 	--link-hover: #6b4218;
-	--muted: #8a7d6a;
+	--muted: #6f6352;
 	--rule: #e9e1d4;
 	--code-bg: #f3eee4;
 	--mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
@@ -34,11 +37,6 @@
 html {
 	font-family: "Redaction", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	margin: 0;
-	scrollbar-width: none;
-	-ms-overflow-style: none;
-}
-html::-webkit-scrollbar {
-	display: none;
 }
 ::selection {
 	background: var(--link);
@@ -64,12 +62,24 @@ body {
 	margin: 0;
 	padding: 0 24px;
 }
+/* article pages: conservative prose tuning (Redaction retained) */
+body.article main {
+	font-size: 1.06rem;
+	line-height: 1.7;
+}
+body.article main p,
+body.article main li {
+	line-height: 1.7;
+}
 main, header, footer {
 	max-width: 70ch;
 	margin: 0 auto;
 }
 footer {
-	margin-top: 2rem;
+	margin-top: 4rem;
+	padding-top: 1.5rem;
+	padding-bottom: 2.5rem;
+	border-top: 1px solid var(--rule);
 }
 .contacts-heading {
 	margin-top: 3.5rem;
@@ -104,13 +114,30 @@ a {
 	background-position: 0 100%;
 	transition: background-size 0.15s ease;
 }
+/* prose links keep a quiet permanent underline; nav and badges stay clean */
+main p a,
+main li a {
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+	text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
 a:hover {
 	text-decoration: none;
 	color: var(--link-hover);
 	background-size: 100% 1px;
 }
-.badges a {
-	background-image: none;
+main p a:hover,
+main li a:hover {
+	text-decoration-color: currentColor;
+}
+nav a,
+.badges a,
+.post-links li a,
+main .more-link a,
+main .back-link a,
+main .related a {
+	text-decoration: none;
 }
 a:focus-visible {
 	outline: 2px solid var(--link);
@@ -151,13 +178,6 @@ p {
 .badges img {
 	height: 31px;
 	width: auto;
-	opacity: 0.9;
-	transition: opacity 0.15s ease;
-}
-.badges a:hover img,
-.badges a:focus-visible img,
-.badges > img:hover {
-	opacity: 1;
 }
 .blog-intro {
 	color: var(--muted);
@@ -176,6 +196,24 @@ p {
 		white-space: normal;
 		overflow-x: visible;
 	}
+	header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.5rem;
+		padding-top: 2rem;
+	}
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 1rem;
+	}
+	nav a {
+		margin-left: 0;
+		padding: 0.4rem 0;
+	}
+	.post-links time {
+		font-size: 0.75rem;
+	}
 }
 h1 {
 	font-size: 2.25rem;
@@ -185,14 +223,14 @@ h1 {
 }
 h2 {
 	font-size: 1.375rem;
-	margin-top: 2.5rem;
-	margin-bottom: 1rem;
+	margin-top: var(--space-section);
+	margin-bottom: var(--space-block);
 	text-wrap: balance;
 }
 h3 {
 	font-size: 1.125rem;
 	margin-top: 2rem;
-	margin-bottom: 0.75rem;
+	margin-bottom: var(--space-block);
 	text-wrap: balance;
 }
 h2[id], h3[id] {
@@ -226,7 +264,7 @@ h2[id] a:focus-visible, h3[id] a:focus-visible {
 	justify-content: space-between;
 	align-items: baseline;
 	gap: 1rem;
-	padding: 0.45rem 0;
+	padding: 0.65rem 0.25rem;
 	border-bottom: 1px solid var(--rule);
 }
 .post-links li a {
@@ -243,7 +281,7 @@ h2[id] a:focus-visible, h3[id] a:focus-visible {
 }
 .post-links time {
 	font-family: var(--mono);
-	font-size: 0.72rem;
+	font-size: 0.8rem;
 	color: var(--muted);
 	white-space: nowrap;
 }
@@ -271,6 +309,7 @@ h2[id] a:focus-visible, h3[id] a:focus-visible {
 }
 .blog-title a {
 	color: inherit;
+	text-decoration: none;
 }
 .blog-title a:hover {
 	color: var(--link);
@@ -369,6 +408,10 @@ code {
 pre code {
 	font-size: inherit;
 }
+img {
+	max-width: 100%;
+	height: auto;
+}
 blockquote {
 	border-left: 3px solid var(--link);
 	margin: 1.5rem 0;
@@ -393,6 +436,13 @@ th {
 }
 tbody tr:hover td {
 	background: var(--code-bg);
+}
+/* wide tables scroll inside their own box on small screens */
+@media (max-width: 600px) {
+	table {
+		display: block;
+		overflow-x: auto;
+	}
 }
 ul, ol {
 	line-height: 1.6;

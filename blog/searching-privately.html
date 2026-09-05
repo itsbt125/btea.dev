@@ -14,14 +14,14 @@
 <link rel="stylesheet" href="../style.css">
 <title>enhancing search privacy / btea.dev</title>
 </head>
-<body>
-<a class="skip-link" href="#main">Skip to content</a>
+<body class="article">
+<a class="skip-link" href="#main">skip to content</a>
 <header>
 <h1>enhancing search privacy</h1>
-<nav><a href="./index.html" aria-current="page">blog</a> <a href="/uses/">uses</a> <a href="/homelab/">lab</a></nav>
+<nav><a href="/">home</a> <a href="/uses/">uses</a> <a href="/homelab/">lab</a> <a href="./index.html" aria-current="page">blog</a></nav>
 </header>
 <main id="main">
-<p class="post-meta"><time datetime="2026-08-24">August 24, 2026</time> · ~4 min read</p>
+<p class="post-meta"><time datetime="2026-08-24">august 24, 2026</time> · ~4 min read</p>
 
 <h2 id="the-problem"><a href="#the-problem">#</a> what we're trying to solve</h2>
 <p>Google. We're trying to beat Google at their own game. Google, and every other major search provider, won't hesitate to send your search data to advertisers and law enforcement. Imagine you need to search for a very specific string privately: your search provider now knows exactly where that string came from, along with hundreds of fingerprints on you. I've solved these issues for myself, and in this post I'll detail my private search setup for protection against adversaries and advertisers. To start, you'll need a dedicated Linux server like a <a href="https://www.raspberrypi.com/" target="_blank" rel="noopener noreferrer">Raspberry Pi</a>. I'm not going to go into depth on setting up a Linux distro like Debian on it, but you really only need Docker and a subscription to a private VPN. This article covers routing a private search aggregator (<a href="https://docs.searxng.org/" target="_blank" rel="noopener noreferrer">SearXNG</a>) through a VPN provider you trust, like <a href="https://mullvad.net/" target="_blank" rel="noopener noreferrer">Mullvad</a>.</p>
@@ -76,7 +76,7 @@ docker exec gluetun sh -c 'nslookup example.com'
 <p class="back-link">← <a href="../index.html">btea.dev</a></p>
 </main>
 
-<footer><p>© 2026 btea.dev · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">Source Code</a></p></footer>
+<footer><p>© 2026 btea.dev · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">source code</a></p></footer>
 <script src="post.js" defer></script>
 </body>
 </html>

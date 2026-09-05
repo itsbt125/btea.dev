@@ -25,26 +25,26 @@
 <title>btea.dev</title>
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to content</a>
+<a class="skip-link" href="#main">skip to content</a>
 <header>
 <h1>~/btea</h1>
-<nav><a href="/" aria-current="page">home</a> <a href="./uses/">uses</a> <a href="/homelab/">lab</a> <a href="./blog/index.html">blog</a></nav>
+<nav><a href="/" aria-current="page">home</a> <a href="/uses/">uses</a> <a href="/homelab/">lab</a> <a href="/blog/">blog</a></nav>
 </header>
 <main id="main">
-<h2>Introduction</h2>
-<p>Hey, I'm btea. I've been around computers for a long time and these days I'm mostly into Linux, networking, and security research, with a focus on malware analysis and web exploitation. I'm self-taught and a big open source believer, and I run a homelab where I basically play sysadmin.</p>
-<h2>What I'm doing right now</h2>
-<p>Right now I'm mostly doing security research. I work through rooms on TryHackMe and HackTheBox, and I pentest sites for fun on the side (with consent, of course). The main focus is web exploitation and malware analysis. I'm also building out a homelab and learning C after spending most of my time in Python.</p>
-<h2>Latest posts</h2>
+<h2>introduction</h2>
+<p>hey, i'm btea. i'm self-taught, big on open source, and i run a homelab where i basically play sysadmin. these days i'm mostly into linux, networking, and security research.</p>
+<h2>what i'm doing right now</h2>
+<p>the current focus is web exploitation and malware analysis — i work through rooms on tryhackme and hackthebox, and i pentest sites for fun on the side (with consent, of course). i'm also building out the homelab and learning c after spending most of my time in python.</p>
+<h2>latest posts</h2>
 <ul class="post-links">
-<li><a href="./blog/searching-privately.html">enhancing search privacy</a><time datetime="2026-08-24">August 24, 2026</time></li>
-<li><a href="./blog/codetyper-still-broken.html">Still Broken: Re-assessing codetyper.in After Patches</a><time datetime="2026-06-29">June 29, 2026</time></li>
-<li><a href="./blog/from-regular-user-to-super-admin.html">From Regular User to Super Admin: Hacking codetyper.in</a><time datetime="2026-04-21">April 21, 2026</time></li>
+<li><a href="./blog/searching-privately.html">enhancing search privacy</a><time datetime="2026-08-24">august 24, 2026</time></li>
+<li><a href="./blog/codetyper-still-broken.html">still broken: re-assessing codetyper.in after patches</a><time datetime="2026-06-29">june 29, 2026</time></li>
+<li><a href="./blog/from-regular-user-to-super-admin.html">from regular user to super admin: hacking codetyper.in</a><time datetime="2026-04-21">april 21, 2026</time></li>
 </ul>
 <p class="more-link"><a href="./blog/index.html">all posts →</a></p>
 
-<h2 class="contacts-heading">Contacts and socials</h2>
-<p>You can email me at <a href="mailto:contact@btea.dev">contact@btea.dev</a> (PGP key <a href="pgp.asc">here</a>). Find me on GitHub <a href="https://github.com/itsbt125" target="_blank" rel="noopener noreferrer">here</a>.</p>
+<h2 class="contacts-heading">contacts and socials</h2>
+<p>email me at <a href="mailto:contact@btea.dev">contact@btea.dev</a>, grab my <a href="pgp.asc">pgp key</a>, or find me on <a href="https://github.com/itsbt125" target="_blank" rel="noopener noreferrer">github (itsbt125)</a>. new posts also go out over the <a href="/feed.xml">atom feed</a>.</p>
 <div class="badges">
     <img src="images/linux-badge.png" alt="linux badge" width="88" height="31" loading="lazy" decoding="async">
     <a href="https://cyber.dabamos.de/88x31/debian-powered.gif" target="_blank" rel="noopener noreferrer"><img src="images/debian-powered.gif" alt="debian powered badge" width="88" height="31" loading="lazy" decoding="async"></a>
@@ -61,7 +61,7 @@
 </main>
 <footer>
 <p id="server-stats" aria-label="server statistics"></p>
-<p>© 2026 btea.dev · Last updated <span id="last-updated">August 23, 2026</span> · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">Source Code</a></p>
+<p>© 2026 btea.dev · last updated <span id="last-updated">august 23, 2026</span> · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">source code</a></p>
 </footer>
 <script>
   function formatUptime(seconds) {
@@ -81,7 +81,7 @@
           `cpu: ${d.cpu}% · mem: ${d.mem_used}gb/7.87gb · up: ${formatUptime(d.uptime)} · visitors (24h): ${d.unique_visitors_by_ip}`;
         if (d.last_updated) {
           const lu = document.getElementById('last-updated');
-          if (lu) lu.textContent = d.last_updated;
+          if (lu) lu.textContent = d.last_updated.toLowerCase();
         }
       })
       .catch(() => {

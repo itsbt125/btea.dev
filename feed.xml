@@ -18,7 +18,7 @@
 		<published>2026-08-24T00:00:00Z</published>
 		<updated>2026-08-24T00:00:00Z</updated>
 		<summary>How I search during security research without telling search engines, my ISP, or the target: self-hosted SearXNG behind a WireGuard kill switch, plus the browser habits that actually matter.</summary>
-		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-08-24&quot;&gt;August 24, 2026&lt;/time&gt; · ~4 min read&lt;/p&gt;
+		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-08-24&quot;&gt;august 24, 2026&lt;/time&gt; · ~4 min read&lt;/p&gt;
 
 &lt;h2 id=&quot;the-problem&quot;&gt;&lt;a href=&quot;#the-problem&quot;&gt;#&lt;/a&gt; what we&#x27;re trying to solve&lt;/h2&gt;
 &lt;p&gt;Google. We&#x27;re trying to beat Google at their own game. Google, and every other major search provider, won&#x27;t hesitate to send your search data to advertisers and law enforcement. Imagine you need to search for a very specific string privately: your search provider now knows exactly where that string came from, along with hundreds of fingerprints on you. I&#x27;ve solved these issues for myself, and in this post I&#x27;ll detail my private search setup for protection against adversaries and advertisers. To start, you&#x27;ll need a dedicated Linux server like a &lt;a href=&quot;https://www.raspberrypi.com/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Raspberry Pi&lt;/a&gt;. I&#x27;m not going to go into depth on setting up a Linux distro like Debian on it, but you really only need Docker and a subscription to a private VPN. This article covers routing a private search aggregator (&lt;a href=&quot;https://docs.searxng.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;SearXNG&lt;/a&gt;) through a VPN provider you trust, like &lt;a href=&quot;https://mullvad.net/&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Mullvad&lt;/a&gt;.&lt;/p&gt;
@@ -72,13 +72,13 @@ docker exec gluetun sh -c &#x27;nslookup example.com&#x27;
 	</entry>
 
 	<entry>
-		<title>Still Broken: Re-assessing codetyper.in After Patches</title>
+		<title>still broken: re-assessing codetyper.in after patches</title>
 		<link href="https://btea.dev/blog/codetyper-still-broken.html"/>
 		<id>https://btea.dev/blog/codetyper-still-broken.html</id>
 		<published>2026-06-29T00:00:00Z</published>
 		<updated>2026-06-29T00:00:00Z</updated>
 		<summary>A live re-assessment of codetyper.in after the vendor claimed patches. The admin IDOR was fixed, but almost everything else wasn&#x27;t. New mass-assignment bugs, an anti-cheat bypass via the public bundle formula, and a demonstrated path to #1 on the Python leaderboard in about 3 minutes.</summary>
-		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-06-29&quot;&gt;June 29, 2026&lt;/time&gt; · codetyper series, part 2 · ~5 min read&lt;/p&gt;
+		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-06-29&quot;&gt;june 29, 2026&lt;/time&gt; · codetyper series, part 2 · ~5 min read&lt;/p&gt;
 
 &lt;h2 id=&quot;context&quot;&gt;&lt;a href=&quot;#context&quot;&gt;#&lt;/a&gt; Context&lt;/h2&gt;
 &lt;p&gt;In April 2026 I disclosed a set of critical vulnerabilities in &lt;a href=&quot;https://btea.dev/blog/from-regular-user-to-super-admin.html&quot;&gt;codetyper.in&lt;/a&gt;. The vendor patched the admin IDOR. I came back in late May and late June to see what else stuck. The short version: the admin IDOR stayed fixed. Everything else didn&#x27;t.&lt;/p&gt;
@@ -199,16 +199,16 @@ select=user_id,profiles(username),snippets(content),recording_json&amp;limit=10&
 
 &lt;p&gt;&lt;em&gt;All testing performed with authorization. Only throwaway accounts were modified; changes were reverted promptly after disclosure. No other user data was touched. Content disclosure: The development of this specific page was aided with AI tools.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p class=&quot;related&quot;&gt;Related: &lt;a href=&quot;https://btea.dev/blog/from-regular-user-to-super-admin.html&quot;&gt;From Regular User to Super Admin: Hacking codetyper.in&lt;/a&gt; — part 1, where all this started.&lt;/p&gt;</content>
+&lt;p class=&quot;related&quot;&gt;related: &lt;a href=&quot;https://btea.dev/blog/from-regular-user-to-super-admin.html&quot;&gt;from regular user to super admin: hacking codetyper.in&lt;/a&gt; — part 1, where all this started.&lt;/p&gt;</content>
 	</entry>
 	<entry>
-		<title>From Regular User to Super Admin: Hacking codetyper.in</title>
+		<title>from regular user to super admin: hacking codetyper.in</title>
 		<link href="https://btea.dev/blog/from-regular-user-to-super-admin.html"/>
 		<id>https://btea.dev/blog/from-regular-user-to-super-admin.html</id>
 		<published>2026-04-21T00:00:00Z</published>
 		<updated>2026-04-21T00:00:00Z</updated>
 		<summary>A writeup on how I went from curious visitor to full admin access on codetyper.in by exploiting misconfigured RLS policies and an IDOR vulnerability, all starting from a single JS bundle.</summary>
-		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-04-21&quot;&gt;April 21, 2026&lt;/time&gt; · codetyper series, part 1 · ~5 min read&lt;/p&gt;
+		<content type="html">&lt;p class=&quot;post-meta&quot;&gt;&lt;time datetime=&quot;2026-04-21&quot;&gt;april 21, 2026&lt;/time&gt; · codetyper series, part 1 · ~5 min read&lt;/p&gt;
 
 &lt;h2 id=&quot;step1&quot;&gt;&lt;a href=&quot;#step1&quot;&gt;#&lt;/a&gt; Step 1: Read the Bundle&lt;/h2&gt;
 &lt;p&gt;I was interested in signing up for the platform, but it required an early access code. I typed in a bogus code and noticed zero network requests. Verification was client-side only. I checked the network tab, saw a 1.2MB JS bundle, and grepped it for the code. Instead, I found Supabase.&lt;/p&gt;
@@ -380,6 +380,6 @@ grep -oP &#x27;U\.from\(&quot;[^&quot;]+&quot;\)&#x27; bundle.js | sort -u
 
 &lt;p&gt;&lt;em&gt;All sensitive information was redacted. Testing performed with explicit authorization. No data was modified or destroyed. In the event that I missed something, please contact me by one of the methods on the main page of my site.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p class=&quot;related&quot;&gt;Related: &lt;a href=&quot;https://btea.dev/blog/codetyper-still-broken.html&quot;&gt;Still Broken: Re-assessing codetyper.in After Patches&lt;/a&gt; — the round 2/3 follow-up after the vendor claimed patches.&lt;/p&gt;</content>
+&lt;p class=&quot;related&quot;&gt;related: &lt;a href=&quot;https://btea.dev/blog/codetyper-still-broken.html&quot;&gt;still broken: re-assessing codetyper.in after patches&lt;/a&gt; — the round 2/3 follow-up after the vendor claimed patches.&lt;/p&gt;</content>
 	</entry>
 </feed>

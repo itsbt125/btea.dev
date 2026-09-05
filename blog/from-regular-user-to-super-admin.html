@@ -10,7 +10,7 @@
 <meta name="robots" content="noarchive">
 <link rel="alternate" type="application/atom+xml" title="btea.dev blog" href="/feed.xml">
 <link rel="canonical" href="https://btea.dev/blog/from-regular-user-to-super-admin.html">
-<meta property="og:title" content="From Regular User to Super Admin: Hacking codetyper.in">
+<meta property="og:title" content="from regular user to super admin: hacking codetyper.in">
 <meta property="og:description" content="How I went from a JS bundle to full admin access on codetyper.in.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://btea.dev/blog/from-regular-user-to-super-admin.html">
@@ -18,18 +18,18 @@
 <meta name="twitter:card" content="summary">
 <link rel="preload" as="font" type="font/woff2" href="../fonts/Redaction_50-Regular.woff2" crossorigin>
 <link rel="stylesheet" href="../style.css">
-<title>From Regular User to Super Admin / btea.dev</title>
+<title>from regular user to super admin / btea.dev</title>
 </head>
-<body>
-<a class="skip-link" href="#main">Skip to content</a>
+<body class="article">
+<a class="skip-link" href="#main">skip to content</a>
 <header>
-<h1>From Regular User to Super Admin: Hacking codetyper.in</h1>
-<nav><a href="./index.html" aria-current="page">blog</a> <a href="/uses/">uses</a> <a href="/homelab/">lab</a></nav>
+<h1>from regular user to super admin: hacking codetyper.in</h1>
+<nav><a href="/">home</a> <a href="/uses/">uses</a> <a href="/homelab/">lab</a> <a href="./index.html" aria-current="page">blog</a></nav>
 </header>
 <main id="main">
-<p class="post-meta"><time datetime="2026-04-21">April 21, 2026</time> · codetyper series, part 1 · ~5 min read</p>
+<p class="post-meta"><time datetime="2026-04-21">april 21, 2026</time> · codetyper series, part 1 · ~5 min read</p>
 
-<h2 id="step1"><a href="#step1">#</a> Step 1: Read the Bundle</h2>
+<h2 id="step1"><a href="#step1">#</a> step 1: read the bundle</h2>
 <p>I was interested in signing up for the platform, but it required an early access code. I typed in a bogus code and noticed zero network requests. Verification was client-side only. I checked the network tab, saw a 1.2MB JS bundle, and grepped it for the code. Instead, I found Supabase.</p>
 
 <pre data-lang="bash"><code>curl -sL "https://codetyper.in/assets/index-[HASH].js" -o bundle.js
@@ -60,7 +60,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <hr>
 
-<h2 id="step2"><a href="#step2">#</a> Step 2: Dump the Database (No Auth Required)</h2>
+<h2 id="step2"><a href="#step2">#</a> step 2: dump the database (no auth required)</h2>
 <p>With the anon key, I queried tables that should have required authentication.</p>
 
 <h3>Profiles Table</h3>
@@ -92,7 +92,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <hr>
 
-<h2 id="step3"><a href="#step3">#</a> Step 3: Identify an Admin</h2>
+<h2 id="step3"><a href="#step3">#</a> step 3: identify an admin</h2>
 <p>The <code>admins</code> table itself had RLS enabled, but the leaked <code>profiles</code> data gave enough metadata to infer admin identities based on activity patterns and account age. From the profile dump, I extracted a high-confidence admin user ID.</p>
 
 <pre data-lang="bash"><code>Admin user ID: f1f55801-...</code></pre>
@@ -102,7 +102,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <hr>
 
-<h2 id="step4"><a href="#step4">#</a> Step 4: IDOR, the path to becoming an admin</h2>
+<h2 id="step4"><a href="#step4">#</a> step 4: idor, the path to becoming an admin</h2>
 <p>The app checks admin privileges client-side like this:</p>
 
 <pre data-lang="bash"><code>U.from("admins").select("*").eq("user_id", r.user.id).maybeSingle()</code></pre>
@@ -127,7 +127,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <hr>
 
-<h2 id="step5"><a href="#step5">#</a> Step 5: Biometric Data Exposure</h2>
+<h2 id="step5"><a href="#step5">#</a> step 5: biometric data exposure</h2>
 <p>The bundle referenced two sensitive tables:</p>
 
 <pre data-lang="bash"><code>// keystroke_events
@@ -155,7 +155,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <hr>
 
-<h2 id="chain"><a href="#chain">#</a> The Full Chain</h2>
+<h2 id="chain"><a href="#chain">#</a> the full chain</h2>
 <pre data-lang="bash"><code>1. curl the JS bundle          → URL, key, table names
 2. curl profiles table         → 53 user records + 1 admin ID
 3. Register account            → valid JWT session
@@ -166,7 +166,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <hr>
 
-<h2 id="vendor"><a href="#vendor">#</a> Vendor Response</h2>
+<h2 id="vendor"><a href="#vendor">#</a> vendor response</h2>
 <p>The team responded promptly and professionally. Here's a brief snippet of their response:</p>
 
 <blockquote>"Thank you again for taking the time to conduct this assessment and practice responsible disclosure. I'm writing to let you know that we have deployed a comprehensive security patch, and the critical vulnerabilities you outlined have been remediated."</blockquote>
@@ -175,7 +175,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <hr>
 
-<h2 id="timeline"><a href="#timeline">#</a> Disclosure Timeline</h2>
+<h2 id="timeline"><a href="#timeline">#</a> disclosure timeline</h2>
 <table>
 <tr><th>Date</th><th>Milestone</th></tr>
 <tr><td><time datetime="2026-04-17">April 17, 2026</time></td><td>Initial passive reconnaissance</td></tr>
@@ -187,7 +187,7 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <hr>
 
-<h2 id="tldr"><a href="#tldr">#</a> TL;DR</h2>
+<h2 id="tldr"><a href="#tldr">#</a> tl;dr</h2>
 <ul>
 <li><strong>RLS was off.</strong> 53 user profiles and sessions were readable by anyone with the anon key. (Leaderboards are public by design, so that is not an issue.)</li>
 <li><strong>IDOR in the admin check.</strong> Swapping my user ID for an admin's ID in the Supabase query granted super-admin access.</li>
@@ -199,12 +199,12 @@ grep -oP 'U\.from\("[^"]+"\)' bundle.js | sort -u
 
 <p><em>All sensitive information was redacted. Testing performed with explicit authorization. No data was modified or destroyed. In the event that I missed something, please contact me by one of the methods on the main page of my site.</em></p>
 
-<p class="related">Related: <a href="./codetyper-still-broken.html">Still Broken: Re-assessing codetyper.in After Patches</a> — the round 2/3 follow-up after the vendor claimed patches.</p>
+<p class="related">related: <a href="./codetyper-still-broken.html">still broken: re-assessing codetyper.in after patches</a> — the round 2/3 follow-up after the vendor claimed patches.</p>
 
 <p class="back-link">← <a href="../index.html">btea.dev</a></p>
 </main>
 
-<footer><p>© 2026 btea.dev · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">Source Code</a></p></footer>
+<footer><p>© 2026 btea.dev · <a href="https://github.com/itsbt125/btea.dev" target="_blank" rel="noopener noreferrer">source code</a></p></footer>
 <script src="post.js" defer></script>
 </body>
 </html>
